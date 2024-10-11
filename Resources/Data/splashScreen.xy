@@ -1,0 +1,7 @@
+﻿{
+  "type": "TextureSheet",
+  "content": {
+    "texturePath": "splashScreen.png",
+    "frameSize": {"x": 22, "y": 21}
+  }
+}

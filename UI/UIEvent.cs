@@ -1,0 +1,111 @@
+﻿using XYEngine.Inputs;
+
+namespace XYEngine.UI;
+
+public static class UIEvent
+{
+    public enum Type
+    {
+        MouseEnter, MouseExit, MouseOver,
+        MouseClick
+    }
+
+    private static readonly Dictionary<UIElement, Dictionary<Type, Action>> elements = new ();
+    private static readonly Dictionary<UIElement, HashSet<Type>> previousStatesElement = new ();
+
+    /// <summary>
+    /// Inscrire un événement pour un <see cref="UIElement"/>.
+    /// </summary>
+    /// <param name="element">L'élément concerné.</param>
+    /// <param name="eventType">Le type d'événement à inscrire.</param>
+    /// <param name="action">L'action qui doit être effectué au moment de l'événement.</param>
+    public static void Register(UIElement element, Type eventType, Action action)
+    {
+        if (elements.TryGetValue(element, out var events))
+        {
+            if (!events.TryAdd(eventType, action))
+                events[eventType] += action;
+        }
+        else
+        {
+            elements.Add(element, new Dictionary<Type, Action> { { eventType, action } });
+            previousStatesElement.Add(element, []);
+        }
+    }
+
+    /// <summary>
+    /// Désinscrit un événement pour un <see cref="UIElement"/>
+    /// </summary>
+    /// <param name="element">L'élément concerné.</param>
+    /// <param name="eventType">Type d'événement à désinscrire.</param>
+    public static void UnRegister(UIElement element, Type eventType)
+    {
+        if (elements.TryGetValue(element, out var events))
+        {
+            events.Remove(eventType);
+            if (events.Count == 0)
+            {
+                elements.Remove(element);
+                previousStatesElement.Remove(element);
+            }
+        }
+    }
+
+    public static void UnRegisterAllEvents(UIElement element) => elements.Remove(element);
+
+    internal static void Update()
+    {
+        var mousePosition = SceneManager.current.canvas.mousePosition;
+        foreach (var (element, events) in elements)
+        {
+            if (!element.active)
+                continue;
+
+            var previousStates = previousStatesElement[element];
+            var newStates = new HashSet<Type>();
+            var isMouseOver = element.ContainsPoint(mousePosition);
+
+            if (isMouseOver)
+                newStates.Add(Type.MouseOver);
+
+            foreach (var (eventType, action) in events)
+            {
+                switch (eventType)
+                {
+                    case Type.MouseEnter:
+                        if (isMouseOver && !previousStates.Contains(Type.MouseOver))
+                        {
+                            action();
+                            newStates.Add(Type.MouseEnter);
+                        }
+
+                        break;
+                    case Type.MouseExit:
+                        if (!isMouseOver && previousStates.Contains(Type.MouseOver))
+                        {
+                            action();
+                            newStates.Add(Type.MouseExit);
+                        }
+
+                        break;
+                    case Type.MouseOver:
+                        if (isMouseOver)
+                            action();
+                        break;
+                    case Type.MouseClick:
+                        if (isMouseOver && Input.IsMouseButtonPressed(MouseButton.Left))
+                        {
+                            action();
+                            newStates.Add(Type.MouseClick);
+                        }
+
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
+
+            previousStatesElement[element] = newStates;
+        }
+    }
+}
