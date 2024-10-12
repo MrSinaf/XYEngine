@@ -10,7 +10,7 @@ internal class SplashScreen(Action onFinish) : Scene
 
     protected override void Start()
     {
-#if RELEASE
+#if DEBUG
         onFinish();
         return;
 #endif
