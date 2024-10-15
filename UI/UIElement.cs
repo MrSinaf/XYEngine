@@ -347,7 +347,6 @@ public class UIElement
         _scaledSize = (size * scale).ToVector2Int(NumberOperation.Ceiling);
         var scaledPivotSize = (pivot * _scaledSize).ToVector2Int(NumberOperation.Ceiling);
         
-        // TODO : N'a pas été vérifié.
         if (anchorMin != anchorMax)
         {
             var anchorSize = new Vector2(MathF.Abs(anchorMin.x - anchorMax.x), MathF.Abs(anchorMin.y - anchorMax.y)) * parent.size;
@@ -368,7 +367,8 @@ public class UIElement
                 scaledPivotSize.y = 0;
             }
 
-            _scaledSize = anchorSize.ToVector2Int();
+            size = anchorSize.ToVector2Int();
+            UnmarkAsNeedingUpdate();
         }
 
         realPosition = position + parent.realPosition - scaledPivotSize + (parent.size * parent.scale * anchorMin).ToVector2Int();
