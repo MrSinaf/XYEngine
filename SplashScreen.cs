@@ -12,9 +12,7 @@ internal class SplashScreen(Action onFinish) : Scene
     {
 #if DEBUG
         onFinish();
-        return;
-#endif
-        
+#else
         canvas.size = new Vector2Int(80, 45);
         var texture = Resources.LoadTextureSheet("splashScreen");
         var image = new Image(texture)
@@ -35,6 +33,7 @@ internal class SplashScreen(Action onFinish) : Scene
                                                                              .SetQuadUv(0, value.position00, value.position11).Apply()));
         animation.onFinish += onFinish;
         animation.Play();
+#endif
     }
 
     protected override void Render() => animation.Update();

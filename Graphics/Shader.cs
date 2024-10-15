@@ -1,5 +1,6 @@
 ﻿using Silk.NET.Maths;
 using Silk.NET.OpenGL;
+using XYEngine.Debugs;
 using static XYEngine.GameWindow;
 
 namespace XYEngine.Graphics;
@@ -71,5 +72,7 @@ public class Shader
     internal void Use()
     {
         gl.UseProgram(handle);
+        if (gl.GetError() != GLEnum.NoError)
+            Debug.LogIntern("Shader Error\n" + gl.GetError(), TypeLog.Error);
     }
 }
