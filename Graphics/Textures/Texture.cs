@@ -3,10 +3,13 @@ using static XYEngine.GameWindow;
 
 namespace XYEngine.Graphics;
 
+public enum TextureFilter { Nearest = 9728, Linear = 9729 }
+
 public class Texture
 {
     public readonly Vector2Int size;
     public readonly Vector2 texelSize;
+    public TextureFilter filter = TextureFilter.Nearest;
 
     private readonly uint handle;
     private readonly Color[] pixels;
@@ -29,12 +32,10 @@ public class Texture
         gl.BindTexture(TextureTarget.Texture2D, handle);
         
         var wrapMode = (int)TextureWrapMode.ClampToEdge;
-        var filter = (int)TextureMinFilter.Nearest;
         
         gl.TexParameterI(GLEnum.Texture2D, GLEnum.TextureWrapS, in wrapMode);
         gl.TexParameterI(GLEnum.Texture2D, GLEnum.TextureWrapT, in wrapMode);
-        gl.TexParameterI(GLEnum.Texture2D, GLEnum.TextureMinFilter, in filter);
-        gl.TexParameterI(GLEnum.Texture2D, GLEnum.TextureMagFilter, in filter);
+        SetFilter(filter);
 
         gl.Enable(EnableCap.Blend);
         gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
@@ -53,6 +54,15 @@ public class Texture
             }
         }
         gl.GenerateMipmap(TextureTarget.Texture2D);
+    }
+
+    public void SetFilter(TextureFilter filter)
+    {
+        this.filter = filter;
+        var filterIndex = (int)filter;
+        gl.BindTexture(TextureTarget.Texture2D, handle);
+        gl.TexParameterI(GLEnum.Texture2D, GLEnum.TextureMinFilter, in filterIndex);
+        gl.TexParameterI(GLEnum.Texture2D, GLEnum.TextureMagFilter, in filterIndex);
     }
 
     public void Use(TextureUnit unit = TextureUnit.Texture0)

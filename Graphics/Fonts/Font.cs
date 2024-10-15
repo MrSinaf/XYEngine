@@ -1,12 +1,11 @@
-﻿using System.Runtime.InteropServices;
-using FreeTypeSharp;
+﻿using FreeTypeSharp;
 using static FreeTypeSharp.FT;
 
 namespace XYEngine.Graphics.Fonts;
 
-/* TODO : Cette class n'est pas encore entièrement fonctionnel pour un bon usage.
- * Il manque le fait de pouvoir choisir la police d'écriture, mais aussi sa taille.
- * Ensuite, la manière dont les mesures sont calculés ne sont pas encore garantie, le tout est très brouillon, ce qui rend la class Label imprévisible.
+/* TODO : Cette class est partiellement fonctionnel pour un bon usage.
+ * La manière dont les mesures sont calculés ne sont pas encore garantie, le tout reste très brouillon, ce qui risque de rendre la class Label imprévisible.
+ * Il reste alors conseillé de créé le Font avec un heightSize à 64.
  */
 public class Font
 {
@@ -15,55 +14,56 @@ public class Font
 
     public readonly int lineHeight;
     
-    public unsafe Font()
+    /// <summary>
+    /// Crée une texture bitmap avec les informations des characters d'une police d'écriture.
+    /// </summary>
+    /// <param name="fontTarget">Police ciblé relatif à "Resources/Fonts/".</param>
+    /// <param name="heightSize">Taille de la police d'écriture (en hauteur).</param>
+    public unsafe Font(string fontTarget, uint heightSize = 64)
     {
         FT_LibraryRec_* lib;
         FT_FaceRec_* face;
 
         FT_Init_FreeType(&lib);
-        FT_New_Face(lib, (byte*)Marshal.StringToHGlobalAnsi("Resources/Fonts/JetBrainsMono-Bold.ttf"), 0, &face);
-        FT_Set_Char_Size(face, 0, 8 * 64, 300, 300);
-
-        texture = new Texture(1024, 1024);
         
-        var advance = 0;
-        var advanceY = 0;
-        const float ratio = 1 / 1024F;
+        var fontBytes = File.ReadAllBytes($"Resources/Fonts/{fontTarget}.ttf");
+        fixed (byte* ptr = fontBytes)
+            FT_New_Memory_Face(lib, ptr, fontBytes.Length, 0, &face);
+
+        FT_Set_Pixel_Sizes(face, heightSize, heightSize);
+
+        lineHeight = (int)heightSize;
+        texture = new Texture(1024, 1024);
+
+        var quartHeight = lineHeight * 0.25F;   // Utilisé pour centrer les characters, le résultat est plaisant, mais semble imprévisible.
+        var advance = Vector2Int.zero;
         const string chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789àâäéèêëîïôöùûüç-_/\\|+=*.,;:!?()[]{}<>\"'&%$#@*^~`ï";
         foreach (var c in chars)
         {
-            if (c == ' ')
-            {
-                advance += 10;
-                continue;
-            }
-            
             FT_Load_Glyph(face, FT_Get_Char_Index(face, c), FT_LOAD.FT_LOAD_DEFAULT);
-            FT_Render_Glyph(face->glyph, FT_Render_Mode_.FT_RENDER_MODE_NORMAL);
+            FT_Render_Glyph(face->glyph, FT_Render_Mode_.FT_RENDER_MODE_SDF);
+            
+            var glyph = face->glyph;  
             var bitmap = face->glyph->bitmap;
-            var height = (int)bitmap.rows;
-            if (bitmap.width + advance >= texture.size.x)
+            if (bitmap.width + advance.x >= texture.size.x)
             {
-                advanceY += lineHeight + 10;
-                advance = 0;
-                lineHeight = 0;
-            }
-
-            if (lineHeight < height)
-            {
-                lineHeight = height;
-                Console.WriteLine(c);
+                advance.y += lineHeight + 10;
+                advance.x = 0;
             }
             
-            for (var x = 0; x < bitmap.width; x++)
-            for (var y = 0; y < height; y++)
+            for (var x = 0; x < bitmap.pitch; x++)
+            for (var y = 0; y < bitmap.rows; y++)
             {
                 var @byte = bitmap.buffer[x + y * bitmap.pitch];
-                texture[advance + x, advanceY + height - y - 1] = new Color(255, 255, 255, @byte);
+                texture[advance.x + x, advance.y + (int)bitmap.rows - y - 1] = new Color(@byte, @byte, @byte, @byte);
             }
-            characters.TryAdd(c, new Character(new Vector2(bitmap.width, bitmap.rows), new Vector2(bitmap.width, face->glyph->bitmap_top - bitmap.rows), 
-                                               new Rect(new Vector2(advance,  advanceY) * ratio, new Vector2(bitmap.width + advance, bitmap.rows + advanceY) * ratio)));
-            advance += (int)bitmap.width + 10;
+            var uvCharacter = new Rect(advance.ToVector2() * texture.texelSize.x, new Vector2(bitmap.pitch + advance.x, bitmap.rows + advance.y) * texture.texelSize.y);
+            characters.TryAdd(c, new Character(new Vector2(bitmap.pitch, bitmap.rows),
+                                               new Vector2(bitmap.width + glyph->bitmap_left, glyph->bitmap_top - bitmap.rows + quartHeight - 5),
+                                               glyph->bitmap_left,
+                                               uvCharacter));
+
+            advance.x += (int)bitmap.width + 10;
         }
         texture.ApplyPixels();
     }
