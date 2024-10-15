@@ -5,6 +5,7 @@ using Silk.NET.OpenGL;
 using Silk.NET.OpenGL.Extensions.ImGui;
 using Silk.NET.Windowing;
 using StbImageSharp;
+using XYEngine.Debugs;
 using XYEngine.Inputs;
 using XYEngine.UI;
 using Key = XYEngine.Inputs.Key;
@@ -16,6 +17,8 @@ public enum DisplayMode { Windowed, NoBorder, FullScreen }
 
 public class GameWindow
 {
+    public const string ENGINE_VERSION = "0.1.0";
+    
     public static Vector2Int defaultWindowSize { get; private set; }
     public static Vector2Int windowSize { get; private set; }
     public static ImGuiController controller { get; private set; }
@@ -81,7 +84,7 @@ public class GameWindow
 
     private void ImGuiRender()
     {
-        // TODO : Ajouter un moyen de pouvoir configurer externellement efficacement.
+        // TODO : Ajouter un moyen de pouvoir le configurer efficacement en externe.
     }
 
     private void KeyDown(Key key)
@@ -92,6 +95,8 @@ public class GameWindow
 
     private void OnLoad()
     {
+        Debug.LogIntern($"XYEngine - v{ENGINE_VERSION}", TypeLog.Info);
+        
         var input = window.CreateInput();
         controller = new ImGuiController(_gl = window.CreateOpenGL(), window, input);
         Input.Init(input.Keyboards[0], input.Mice[0]);
