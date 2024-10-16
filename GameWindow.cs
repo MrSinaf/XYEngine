@@ -61,6 +61,7 @@ public class GameWindow
         Time.Update(deltaTime);
         SceneManager.Update();
         UIEvent.Update();
+        Input.Update();
     }
 
     private void OnRender(double deltaTime)

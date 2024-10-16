@@ -93,7 +93,7 @@ public static class UIEvent
                             action();
                         break;
                     case Type.MouseClick:
-                        if (isMouseOver && Input.IsMouseButtonPressed(MouseButton.Left))
+                        if (isMouseOver && Input.IsMouseButtonClick(MouseButton.Left))
                         {
                             action();
                             newStates.Add(Type.MouseClick);
