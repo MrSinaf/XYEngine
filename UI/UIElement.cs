@@ -347,6 +347,7 @@ public class UIElement
         _scaledSize = (size * scale).ToVector2Int(NumberOperation.Ceiling);
         var scaledPivotSize = (pivot * _scaledSize).ToVector2Int(NumberOperation.Ceiling);
         
+        realPosition = Vector2Int.zero;
         if (anchorMin != anchorMax)
         {
             var anchorSize = new Vector2(MathF.Abs(anchorMin.x - anchorMax.x), MathF.Abs(anchorMin.y - anchorMax.y)) * parent.size;
@@ -371,7 +372,7 @@ public class UIElement
             UnmarkAsNeedingUpdate();
         }
 
-        realPosition = position + parent.realPosition - scaledPivotSize + (parent.size * parent.scale * anchorMin).ToVector2Int();
+        realPosition += position + parent.realPosition - scaledPivotSize + (parent.size * parent.scale * anchorMin).ToVector2Int();
 
         var matrixScale = scaleWithSize ? _scaledSize : scale;
         _matrix = Matrix4X4.CreateScale(matrixScale.x, matrixScale.y, 0F)
