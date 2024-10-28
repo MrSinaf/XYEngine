@@ -6,7 +6,7 @@ namespace XYEngine.Graphics;
 public class Mesh
 {
     public readonly uint vertexArray;
-    private bool isInit;
+    protected bool isInit { private set; get; }
 
     private readonly uint vertexBuffer;
     private readonly uint elementBuffer;
@@ -60,7 +60,7 @@ public class Mesh
         return this;
     }
 
-    internal unsafe void Use()
+    internal virtual unsafe void Use(Shader shader = null)
     {
         if (!isInit)
             throw new Exception("Un Mesh a été utilisé, mais n'a pas utilisé Apply() !");
