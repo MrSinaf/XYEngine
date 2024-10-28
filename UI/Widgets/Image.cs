@@ -10,4 +10,14 @@ public class Image : UIElement
         render.texture = texture;
         size = texture.size;
     }
+
+    public Image(TextureAtlas texture, string name)
+    {
+        if (!texture.GetUV(name, out var uv))
+            throw new Exception($"{name} does not exist.");
+        
+        render.mesh = new MeshQuad().SetQuad(0, Vector2.zero, Vector2.one, uv.position00, uv.position11).Apply();
+        render.texture = texture;
+        size = texture.data.frames[name].size;
+    }
 }

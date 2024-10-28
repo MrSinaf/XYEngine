@@ -9,9 +9,11 @@ public class Canvas
     public readonly RootElement root = new ();
     public Vector2Int mousePosition;
     
-    private float heightRatio;
+    public float heightRatio { get; private set; }
     private Shader shader;
-    
+
+    // TODO : C'est temporaire, je cherche à mieux l'implémenter.
+    private bool expandToWindow;
     private Vector2Int _size;
 
     public Vector2Int size
@@ -44,7 +46,7 @@ public class Canvas
 
     internal void CalculeProjection()
     {
-        heightRatio = Math.Min((float)GameWindow.windowSize.x / size.x, (float)GameWindow.windowSize.y / size.y);
+        heightRatio = expandToWindow ? Math.Min((float)GameWindow.windowSize.x / size.x, (float)GameWindow.windowSize.y / size.y) : 1;
         root.size = GameWindow.windowSize / heightRatio;
         
         shader.Use();
@@ -55,4 +57,6 @@ public class Canvas
     {
         mousePosition = (Input.mousePosition / heightRatio).ToVector2Int();
     }
+
+    public static Vector2Int ScaleToCanvas(Vector2 value) => (value * SceneManager.current.canvas.heightRatio).ToVector2Int();
 }

@@ -7,13 +7,13 @@ public class UIElement
 {
     public readonly Render render = new ();
     public UIElement parent { get; private set; }
-
+    
     protected bool scaleWithSize { get; init; } = true;
+    protected Vector2Int realPosition { get; private set; }
     
     private readonly List<UIElement> children = [];
-
-    private Vector2Int realPosition;
     private bool needingUpdate;
+    private bool needingUpdateScaledSize;
 
     private Matrix4X4<float> _matrix = Matrix4X4<float>.Identity;
     private Vector2Int _position;
@@ -94,6 +94,7 @@ public class UIElement
                 return;
 
             _size = value;
+            needingUpdateScaledSize = true;
             MarkAsNeedingUpdate();
         }
     }
@@ -107,6 +108,7 @@ public class UIElement
                 return;
 
             _scale = value;
+            needingUpdateScaledSize = true;
             MarkAsNeedingUpdate();
         }
     }
@@ -160,16 +162,22 @@ public class UIElement
         }
     }
 
-    public virtual Vector2 anchors
+    public Vector2 pivotAndAnchors
     {
         set
         {
-            if (_anchorMin == value && _anchorMax == value)
-                return;
-            
-            _anchorMin = value;
-            _anchorMax = value;
-            MarkAsNeedingUpdate();
+            pivot = value;
+            anchorMin = value;
+            anchorMax = value;
+        }
+    }
+    
+    public Vector2 anchors
+    {
+        set
+        {
+            anchorMin = value;
+            anchorMax = value;
         }
     }
 
@@ -214,8 +222,8 @@ public class UIElement
     {
         get
         {
-            if (needingUpdate)
-                CalculeMatrix();
+            if (needingUpdateScaledSize)
+                _scaledSize = (size * scale).ToVector2Int();
 
             return _scaledSize;
         }
@@ -282,6 +290,59 @@ public class UIElement
         parent.children.Remove(this);
         parent.children.Insert(0, this);
     }
+
+    /// <summary>
+    /// Récupère le premier enfant trouvé ayant le type demandé.
+    /// </summary>
+    /// <param name="recursive">True, s'il faut également effectuer les recherches dans les <see cref="children"/>.</param>
+    /// <typeparam name="T">Type d'élément à trouver.</typeparam>
+    /// <returns>Renvoi le <see cref="UIElement"/> typé trouvé, null si l'élément n'a pas été trouvé.</returns>
+    public T GetChild<T>(bool recursive = false) where T : UIElement
+    {
+        foreach (var element in children)
+        {
+            if (element.GetType() == typeof(T))
+                return element as T;
+        }
+
+        if (recursive)
+        {
+            if (children.Count == 0)
+                return null;
+            
+            foreach (var element in children)
+                return element.GetChild<T>(true);
+        }
+        
+        return null;
+    }
+    
+    /// <summary>
+    /// Récupère tous les enfants trouvés ayant le type demandé.
+    /// </summary>
+    /// <param name="recursive">True, s'il faut également effectuer les recherches dans les <see cref="children"/>.</param>
+    /// <typeparam name="T">Type d'élément à trouver.</typeparam>
+    /// <returns>Renvoi les <see cref="UIElement"/> typés trouvés.</returns>
+    public T[] GetChildren<T>(bool recursive = false) where T : UIElement
+    {
+        var list = new List<T>();
+        foreach (var element in children)
+        {
+            if (element.GetType() == typeof(T))
+                list.Add(element as T);
+        }
+        
+        if (recursive)
+        {
+            if (children.Count == 0)
+                return null;
+            
+            foreach (var element in children)
+                list.AddRange(element.GetChildren<T>(true));
+        }
+        
+        return list.ToArray();
+    }
     
     /// <summary>
     /// Permet de savoir si un point précis se trouve sur l'élément.
@@ -344,27 +405,26 @@ public class UIElement
     private void CalculeMatrix()
     {
         needingUpdate = false;
-        _scaledSize = (size * scale).ToVector2Int(NumberOperation.Ceiling);
-        var scaledPivotSize = (pivot * _scaledSize).ToVector2Int(NumberOperation.Ceiling);
+        var scaledPivotSize = (pivot * scaledSize).ToVector2Int();
         
-        realPosition = Vector2Int.zero;
+        var calculatePosition = Vector2Int.zero;
         if (anchorMin != anchorMax)
         {
             var anchorSize = new Vector2(MathF.Abs(anchorMin.x - anchorMax.x), MathF.Abs(anchorMin.y - anchorMax.y)) * parent.size;
 
-            if (anchorSize.x == 0) anchorSize.x = _scaledSize.x;
+            if (anchorSize.x == 0) anchorSize.x = scaledSize.x;
             else
             {
                 anchorSize.x -= padding.position00.x + padding.position11.x;
-                realPosition.x += padding.position00.x;
+                calculatePosition.x += padding.position00.x;
                 scaledPivotSize.x = 0;
             }
 
-            if (anchorSize.y == 0) anchorSize.y = _scaledSize.y;
+            if (anchorSize.y == 0) anchorSize.y = scaledSize.y;
             else
             {
                 anchorSize.y -= padding.position00.y + padding.position11.y;
-                realPosition.y += padding.position00.y;
+                calculatePosition.y += padding.position00.y;
                 scaledPivotSize.y = 0;
             }
 
@@ -372,11 +432,13 @@ public class UIElement
             UnmarkAsNeedingUpdate();
         }
 
-        realPosition += position + parent.realPosition - scaledPivotSize + (parent.size * parent.scale * anchorMin).ToVector2Int();
-
+        realPosition = calculatePosition += position + parent.realPosition - scaledPivotSize + (parent.scaledSize * anchorMin).ToVector2Int();
+        _scaledSize = (size * scale).ToVector2Int(NumberOperation.Ceiling);
         var matrixScale = scaleWithSize ? _scaledSize : scale;
         _matrix = Matrix4X4.CreateScale(matrixScale.x, matrixScale.y, 0F)
                   * Matrix4X4.CreateRotationZ(float.DegreesToRadians(rotation))
-                  * Matrix4X4.CreateTranslation(realPosition.x, realPosition.y, 0F);
+                  * Matrix4X4.CreateTranslation(calculatePosition.x, calculatePosition.y, 0F);
     }
+
+    public static UIElement CreateContainer() => new () { anchorMin = Vector2.zero, anchorMax = Vector2.one };
 }
