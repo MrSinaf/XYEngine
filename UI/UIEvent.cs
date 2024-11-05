@@ -11,6 +11,9 @@ public static class UIEvent
     }
 
     private static readonly Dictionary<UIElement, Dictionary<Type, Action>> elements = new ();
+    private static readonly List<(UIElement, Type, Action)> pendingRegistrations = [];
+    private static readonly List<(UIElement, Type)> pendingUnRegistrations = [];
+    
     private static readonly Dictionary<UIElement, HashSet<Type>> previousStatesElement = new ();
 
     /// <summary>
@@ -19,43 +22,58 @@ public static class UIEvent
     /// <param name="element">L'élément concerné.</param>
     /// <param name="eventType">Le type d'événement à inscrire.</param>
     /// <param name="action">L'action qui doit être effectué au moment de l'événement.</param>
-    public static void Register(UIElement element, Type eventType, Action action)
-    {
-        if (elements.TryGetValue(element, out var events))
-        {
-            if (!events.TryAdd(eventType, action))
-                events[eventType] += action;
-        }
-        else
-        {
-            elements.Add(element, new Dictionary<Type, Action> { { eventType, action } });
-            previousStatesElement.Add(element, []);
-        }
-    }
+    public static void Register(UIElement element, Type eventType, Action action) => pendingRegistrations.Add((element, eventType, action));
 
     /// <summary>
     /// Désinscrit un événement pour un <see cref="UIElement"/>
     /// </summary>
     /// <param name="element">L'élément concerné.</param>
     /// <param name="eventType">Type d'événement à désinscrire.</param>
-    public static void UnRegister(UIElement element, Type eventType)
+    public static void UnRegister(UIElement element, Type eventType) => pendingUnRegistrations.Add((element, eventType));
+
+    public static void UnRegisterAllEvents(UIElement element)
     {
-        if (elements.TryGetValue(element, out var events))
-        {
-            events.Remove(eventType);
-            if (events.Count == 0)
-            {
-                elements.Remove(element);
-                previousStatesElement.Remove(element);
-            }
-        }
+        elements.Remove(element);
+        previousStatesElement.Remove(element);
     }
 
-    public static void UnRegisterAllEvents(UIElement element) => elements.Remove(element);
+    private static void ApplyPendingLists()
+    {
+        foreach (var (element, eventType, action) in pendingRegistrations)
+        {
+            if (elements.TryGetValue(element, out var events))
+            {
+                if (!events.TryAdd(eventType, action))
+                    events[eventType] += action;
+            }
+            else
+            {
+                elements.Add(element, new Dictionary<Type, Action> { { eventType, action } });
+                previousStatesElement.Add(element, []);
+            }
+        }
+        pendingRegistrations.Clear();
+
+        foreach (var (element, eventType) in pendingUnRegistrations)
+        {
+            if (elements.TryGetValue(element, out var events))
+            {
+                events.Remove(eventType);
+                if (events.Count == 0)
+                {
+                    elements.Remove(element);
+                    previousStatesElement.Remove(element);
+                }
+            }
+        }
+        pendingUnRegistrations.Clear();
+    }
 
     internal static void Update()
     {
         var mousePosition = SceneManager.current.canvas.mousePosition;
+        
+        ApplyPendingLists();
         foreach (var (element, events) in elements)
         {
             if (!element.active)
