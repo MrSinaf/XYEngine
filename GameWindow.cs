@@ -102,13 +102,16 @@ public class GameWindow
         controller = new ImGuiController(_gl = window.CreateOpenGL(), window, input);
         Input.Init(input.Keyboards[0], input.Mice[0]);
         Input.keyDown += KeyDown;
-
-
+        
         _gl.Enable(GLEnum.CullFace);
         _gl.CullFace(TriangleFace.Front);
         _gl.ClearColor(0.1F, 0.1F, 0.15F, 1);
 
-        SetDisplayMode(DisplayMode.Windowed);
+        #if DEBUG
+            SetDisplayMode(DisplayMode.Windowed);
+        #else
+            SetDisplayMode(DisplayMode.NoBorder);
+        #endif
 
         // Récupère l'icône de l'application :
         var result = ImageResult.FromMemory(File.ReadAllBytes("Icon.png"), ColorComponents.RedGreenBlueAlpha);
