@@ -352,7 +352,7 @@ public class UIElement
     public bool ContainsPoint(Vector2Int point)
     {
         point -= realPosition;
-        return point >= Vector2Int.zero && point <= size;
+        return point >= Vector2Int.zero && point <= _scaledSize;
     }
 
     /// <summary>
