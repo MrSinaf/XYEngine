@@ -42,6 +42,7 @@ public class Canvas
     internal void Destroy()
     {
         Input.mouseMove -= OnMouseMove;
+        root.Destroy();
     }
 
     internal void CalculeProjection()

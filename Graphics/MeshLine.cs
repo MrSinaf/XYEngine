@@ -16,15 +16,14 @@ public class MeshLine : Mesh
         Apply();
     }
 
-    internal override unsafe void Use(Shader shader = null)
+    internal override unsafe void Use(Shader shader)
     {
         if (!isInit)
             throw new Exception("Un LineMesh a été utilisé, mais n'a pas utilisé Apply() !");
         
-        // TODO : C'est pour le moment temporaire :
         gl.BindVertexArray(vertexArray);
-        shader?.SetUniform("param", 1);
+        shader.SetUniform("param", 1);
         gl.DrawElements(PrimitiveType.LineLoop, (uint)indices.Length, DrawElementsType.UnsignedInt, (void*)0);
-        shader?.SetUniform("param", 0);
+        shader.SetUniform("param", 0);
     }
 }

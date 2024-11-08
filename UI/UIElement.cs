@@ -7,10 +7,10 @@ public class UIElement
 {
     public readonly Render render = new ();
     public UIElement parent { get; private set; }
-    
+
     protected bool scaleWithSize { get; init; } = true;
     protected Vector2Int realPosition { get; private set; }
-    
+
     private readonly List<UIElement> children = [];
     private bool needingUpdate;
     private bool needingUpdateScaledSize;
@@ -98,7 +98,7 @@ public class UIElement
             MarkAsNeedingUpdate();
         }
     }
-    
+
     public virtual Vector2 scale
     {
         get => _scale;
@@ -171,7 +171,7 @@ public class UIElement
             anchorMax = value;
         }
     }
-    
+
     public Vector2 anchors
     {
         set
@@ -259,10 +259,23 @@ public class UIElement
     /// <summary>
     /// Appel <see cref="RemoveChild"/> depuis son parent pour le rendre orphelin.
     /// </summary>
-    /// <remarks>C'est techniquement le seul moyen de supprimer un <see cref="UIElement"/>.</remarks>
     public void SetOrphan()
     {
         parent?.RemoveChild(this);
+    }
+
+    /// <summary>
+    /// Permet de détruire le <see cref="UIElement"/>.
+    /// </summary>
+    /// <remarks>Tous ses enfants seront détruits avec lui.</remarks>
+    public void Destroy()
+    {
+        SetOrphan();
+
+        while (children.Count > 0)
+            children[0].Destroy();
+
+        render.Dispose();
     }
 
     /// <summary>
@@ -309,14 +322,14 @@ public class UIElement
         {
             if (children.Count == 0)
                 return null;
-            
+
             foreach (var element in children)
                 return element.GetChild<T>(true);
         }
-        
+
         return null;
     }
-    
+
     /// <summary>
     /// Récupère tous les enfants trouvés ayant le type demandé.
     /// </summary>
@@ -331,19 +344,19 @@ public class UIElement
             if (element.GetType() == typeof(T))
                 list.Add(element as T);
         }
-        
+
         if (recursive)
         {
             if (children.Count == 0)
                 return null;
-            
+
             foreach (var element in children)
                 list.AddRange(element.GetChildren<T>(true));
         }
-        
+
         return list.ToArray();
     }
-    
+
     /// <summary>
     /// Permet de savoir si un point précis se trouve sur l'élément.
     /// </summary>
@@ -369,7 +382,7 @@ public class UIElement
     /// Marque comme n'ayant pas besoin de mise à jour.
     /// </summary>
     public void UnmarkAsNeedingUpdate()
-    { 
+    {
         if (!needingUpdate)
             return;
 
@@ -380,13 +393,13 @@ public class UIElement
     /// Permet d'effectuer une action quand cet élément a été utilisé comme paramètre dans <see cref="AddChild"/>.
     /// </summary>
     protected virtual void OnAdded() { }
-    
-    
+
+
     /// <summary>
     /// Permet d'effectuer une action quand cet élément a été utilisé comme paramètre dans <see cref="RemoveChild"/> ou indirectement en faisant <see cref="SetOrphan"/>.
     /// </summary>
     protected virtual void OnRemoved() { }
-    
+
     protected internal virtual void Draw(Shader shader)
     {
         if (!active)
@@ -396,7 +409,7 @@ public class UIElement
         shader.SetUniform("model", matrix);
         shader.SetUniform("tintColor", tint);
         shader.SetUniform("alpha", alpha);
-        render.Draw();
+        render.Draw(shader);
 
         foreach (var child in children)
             child.Draw(shader);
@@ -406,7 +419,7 @@ public class UIElement
     {
         needingUpdate = false;
         var scaledPivotSize = (pivot * scaledSize).ToVector2Int();
-        
+
         var calculatePosition = Vector2Int.zero;
         if (anchorMin != anchorMax)
         {
@@ -435,9 +448,9 @@ public class UIElement
         realPosition = calculatePosition += position + parent.realPosition - scaledPivotSize + (parent.scaledSize * anchorMin).ToVector2Int();
         _scaledSize = (size * scale).ToVector2Int(NumberOperation.Ceiling);
         var matrixScale = scaleWithSize ? _scaledSize : scale;
-        _matrix = Matrix4X4.CreateScale(matrixScale.x, matrixScale.y, 0F)
-                  * Matrix4X4.CreateRotationZ(float.DegreesToRadians(rotation))
-                  * Matrix4X4.CreateTranslation(calculatePosition.x, calculatePosition.y, 0F);
+        _matrix = Matrix4X4.CreateScale(matrixScale.x, matrixScale.y, 0F) *
+                  Matrix4X4.CreateRotationZ(float.DegreesToRadians(rotation)) *
+                  Matrix4X4.CreateTranslation(calculatePosition.x, calculatePosition.y, 0F);
     }
 
     public static UIElement CreateContainer() => new () { anchorMin = Vector2.zero, anchorMax = Vector2.one };

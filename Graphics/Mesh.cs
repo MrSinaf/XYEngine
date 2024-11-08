@@ -1,4 +1,5 @@
 ﻿using Silk.NET.OpenGL;
+using XYEngine.Debugs;
 using static XYEngine.GameWindow;
 
 namespace XYEngine.Graphics;
@@ -15,6 +16,8 @@ public class Mesh
     protected Vector2[] vertices = [];
     protected uint[] indices = [];
     protected Vector3[] uv = [];
+    
+    public bool isDisposed { get; private set; }
 
     protected Mesh()
     {
@@ -36,8 +39,14 @@ public class Mesh
 
     public unsafe Mesh Apply()
     {
-        isInit = true;
+        if (isDisposed)
+        {
+            Debug.LogIntern("Mesh cannot be used after being disposed !", TypeLog.Error);
+            return null;
+        }
         
+        isInit = true;
+
         gl.BindVertexArray(vertexArray);
         gl.BindBuffer(GLEnum.ArrayBuffer, vertexBuffer);
         fixed (Vector2* ptr = vertices)
@@ -60,12 +69,25 @@ public class Mesh
         return this;
     }
 
-    internal virtual unsafe void Use(Shader shader = null)
+    internal virtual unsafe void Use(Shader shader)
     {
         if (!isInit)
             throw new Exception("Un Mesh a été utilisé, mais n'a pas utilisé Apply() !");
-        
+
         gl.BindVertexArray(vertexArray);
         gl.DrawElements(PrimitiveType.Triangles, (uint)indices.Length, DrawElementsType.UnsignedInt, (void*)0);
+    }
+
+    internal void Dispose()
+    {
+        vertices = null;
+        indices = null;
+        uv = null;
+        
+        gl.DeleteBuffer(vertexBuffer);
+        gl.DeleteBuffer(elementBuffer);
+        gl.DeleteBuffer(uvBuffer);
+        gl.DeleteVertexArray(vertexArray);
+        isDisposed = true;
     }
 }

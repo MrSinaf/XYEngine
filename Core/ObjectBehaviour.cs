@@ -62,6 +62,7 @@ public class ObjectBehaviour
     public void Destroy()
     {
         scene.RemoveObject(this);
+        render.Dispose();
         scene = null;
     }
 
@@ -70,6 +71,6 @@ public class ObjectBehaviour
         shader.Use();
         shader.SetUniform("model", matrix);
         shader.SetUniform("colorTarget", new Color(25, 25, 68));
-        render.Draw();
+        render.Draw(shader);
     }
 }
