@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Library</OutputType>
+        <AssemblyVersion>0.1.0.0</AssemblyVersion>
+        <TargetFramework>net9.0</TargetFramework>
+        <LangVersion>preview</LangVersion> <!-- Permettant d'utiliser C#14 -->
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>disable</Nullable>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+        <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <EmbeddedResource Include="assets\**\*"/>
+        <PackageReference Include="FreeTypeSharp" Version="3.0.0"/>
+        <PackageReference Include="NVorbis" Version="0.10.5"/>
+        <PackageReference Include="Silk.NET.Input.Glfw" Version="2.22.0"/>
+        <PackageReference Include="Silk.NET.OpenAL" Version="2.22.0"/>
+        <PackageReference Include="Silk.NET.OpenAL.Soft.Native" Version="1.23.1"/>
+        <PackageReference Include="Silk.NET.OpenGL" Version="2.22.0"/>
+        <PackageReference Include="Silk.NET.Windowing.Glfw" Version="2.22.0"/>
+        <PackageReference Include="StbImageSharp" Version="2.30.15"/>
+        <PackageReference Include="System.Text.Json" Version="9.0.0"/>
+    </ItemGroup>
+
+    <Target Name="MoveDllsToPackages" AfterTargets="Build">
+        <Delete Files="$(OutDir)$(ProjectName).deps.json"/>
+        <ItemGroup>
+            <LocalDlls Include="$(OutDir)*.dll" Exclude="$(OutDir)$(ProjectName).dll"/>
+        </ItemGroup>
+        <Move SourceFiles="@(LocalDlls)" DestinationFolder="$(OutDir)packages\%(RecursiveDir)"/>
+    </Target>
+
+</Project>
