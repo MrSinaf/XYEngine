@@ -1,0 +1,70 @@
+#type VERTEX
+out vec2 frag_uv;
+
+void main()
+{
+    gl_Position = vec4(vec3(position, 1) * model * projection, 1);
+    frag_uv = uv;
+}
+
+#type FRAGMENT
+in vec2 frag_uv;
+
+out vec4 out_color;
+
+uniform sampler2D mainTex;
+uniform vec2 mainTexSize;
+uniform vec2 modelSize;
+
+uniform vec4 uvRegion;
+uniform vec4 padding;
+uniform float paddingScale;
+
+uniform vec4 tint;
+uniform float alpha;
+
+vec4 ninePatch()
+{
+    vec2 regionSize = uvRegion.zw - uvRegion.xy;
+    vec2 texSizeScaled = mainTexSize * regionSize * paddingScale;
+    vec4 uvMarginScaled = padding * paddingScale;
+
+    vec2 regionMarginMin = uvRegion.xy + (uvMarginScaled.xy / texSizeScaled) * regionSize;
+    vec2 regionMarginMax = uvRegion.zw - (uvMarginScaled.zw / texSizeScaled) * regionSize;
+
+    vec2 modelMarginMin = uvMarginScaled.xy;
+    vec2 modelMarginMax = modelSize - uvMarginScaled.zw;
+
+    vec2 fragPos = frag_uv * modelSize;
+    vec2 finalUV;
+
+    if (fragPos.x < modelMarginMin.x) {
+        finalUV.x = uvRegion.x + (fragPos.x / modelMarginMin.x) * (regionMarginMin.x - uvRegion.x);
+    } else if (fragPos.x > modelMarginMax.x) {
+        finalUV.x = uvRegion.z - ((modelSize.x - fragPos.x) / uvMarginScaled.z) * (uvRegion.z - regionMarginMax.x);
+    } else {
+        finalUV.x = regionMarginMin.x + ((fragPos.x - modelMarginMin.x) / (modelMarginMax.x - modelMarginMin.x)) * (regionMarginMax.x - regionMarginMin.x);
+    }
+
+    if (fragPos.y < modelMarginMin.y) {
+        finalUV.y = uvRegion.y + (fragPos.y / modelMarginMin.y) * (regionMarginMin.y - uvRegion.y);
+    } else if (fragPos.y > modelMarginMax.y) {
+        finalUV.y = uvRegion.w - ((modelSize.y - fragPos.y) / uvMarginScaled.w) * (uvRegion.w - regionMarginMax.y);
+    } else {
+        finalUV.y = regionMarginMin.y + ((fragPos.y - modelMarginMin.y) / (modelMarginMax.y - modelMarginMin.y)) * (regionMarginMax.y - regionMarginMin.y);
+    }
+    return texture(mainTex, finalUV);
+}
+
+void main()
+{
+    vec4 color;
+    if (padding == vec4(0.0)) {
+        color = texture(mainTex, uvRegion.xy + frag_uv * uvRegion.zw);
+    } else {
+        color = ninePatch();
+    }
+
+    out_color = color * tint;
+    out_color.a *= alpha;
+}
