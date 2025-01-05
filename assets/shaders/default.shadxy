@@ -1,0 +1,20 @@
+﻿#type VERTEX
+out vec2 frag_uv;
+
+void main()
+{
+    gl_Position = vec4(vec3(position, 1) * model * projection, 1);
+    frag_uv = uv;
+}
+
+#type FRAGMENT
+in vec2 frag_uv;
+out vec4 out_color;
+
+uniform sampler2D mainTex;
+
+void main()
+{
+    out_color = texture(mainTex, frag_uv);
+}
+
