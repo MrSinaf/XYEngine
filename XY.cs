@@ -11,7 +11,7 @@ public static class XY
 	
 	public enum VersionState { Release, Stable, Preview, Dev }
 	
-	public const VersionState VERSION_STATE = VersionState.Release;
+	public const VersionState VERSION_STATE = VersionState.Dev;
 	public static string version => Assembly.GetAssembly(typeof(XY)).GetName().Version.ToString();
 	
 	public static void LaunchGame<T>(string name, Action splashScreenAction = null) where T : Scene, new()
