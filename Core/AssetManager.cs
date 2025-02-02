@@ -5,8 +5,36 @@ namespace XYEngine;
 public static class AssetManager
 {
 	private const string LOG_NAME = "Asset Manager";
-	private static readonly Dictionary<string, IAsset> cache = [];
-	private static readonly Dictionary<string, IAsset> embeddedCache = [];
+	private static readonly Dictionary<string, AssetReference> cache = [];
+	private static readonly Dictionary<string, AssetReference> embeddedCache = [];
+	
+	internal static void ReloadEmbeddedAsset(string path, string sourcePath = null) { }
+	
+	internal static void ReloadAsset(string path, string sourcePath = null)
+	{
+		if (cache.TryGetValue(path, out var reference))
+		{
+			if (!File.Exists(sourcePath))
+				throw new FileNotFoundException($"Asset not found at path '{path}'");
+			
+			try
+			{
+				using var stream = new FileStream(sourcePath, FileMode.Open);
+				reference.asset.Load(new AssetProperty(stream, Path.GetExtension(path).ToLower(), reference.config, true));
+				File.Copy(sourcePath, Path.Combine(AppContext.BaseDirectory, "assets", path), true);
+			}
+			catch (Exception e)
+			{
+				var fullPath = Path.Combine("assets", path);
+				if (!File.Exists(fullPath))
+					throw new FileNotFoundException($"Asset not found at path '{path}'");
+				
+				using var stream = new FileStream(fullPath, FileMode.Open);
+				reference.asset.Load(new AssetProperty(stream, Path.GetExtension(fullPath).ToLower(), reference.config, true));
+				throw;
+			}
+		}
+	}
 	
 	public static T LoadAsset<T>(string path, IAssetConfig config = null, bool acceptGet = false) where T : IAsset, new()
 	{
@@ -15,7 +43,7 @@ public static class AssetManager
 			if (!acceptGet)
 				XY.InternalLog(LOG_NAME, $"You are trying to load `{path}`, but it is already present in the cache!", TypeLog.Warning);
 			
-			return (T)value;
+			return (T)value.asset;
 		}
 		
 		var fullPath = Path.Combine("assets", path);
@@ -26,7 +54,7 @@ public static class AssetManager
 		
 		var asset = new T();
 		asset.Load(new AssetProperty(stream, Path.GetExtension(fullPath).ToLower(), config));
-		cache.Add(path, asset);
+		cache.Add(path, new AssetReference(asset, config));
 		
 		return asset;
 	}
@@ -35,7 +63,7 @@ public static class AssetManager
 	{
 		if (cache.TryGetValue(path, out var value))
 		{
-			asset = (T)value;
+			asset = (T)value.asset;
 			return true;
 		}
 		
@@ -56,15 +84,15 @@ public static class AssetManager
 	
 	public static void UnLoadAsset(string path)
 	{
-		if (cache.Remove(path, out var asset))
-			asset.UnLoad();
+		if (cache.Remove(path, out var value))
+			value.asset.UnLoad();
 	}
 	
 	public static bool TryGetEmbeddedAsset<T>(string path, out T asset) where T : IAsset
 	{
 		if (embeddedCache.TryGetValue(path, out var value))
 		{
-			asset = (T)value;
+			asset = (T)value.asset;
 			return true;
 		}
 		
@@ -86,7 +114,7 @@ public static class AssetManager
 		if (embeddedCache.TryGetValue(path, out var value))
 		{
 			XY.InternalLog(LOG_NAME, $"You are trying to load `{path}`, but it is already present in the embedded cache!", TypeLog.Warning);
-			return (T)value;
+			return (T)value.asset;
 		}
 		
 		var assembly = Assembly.GetExecutingAssembly();
@@ -96,15 +124,15 @@ public static class AssetManager
 		
 		var asset = new T();
 		asset.Load(new AssetProperty(stream, Path.GetExtension(path).ToLower(), config));
-		embeddedCache.Add(path, asset);
+		embeddedCache.Add(path, new AssetReference(asset, config));
 		
 		return asset;
 	}
 	
 	internal static void UnLoadEmbeddedAsset(string path)
 	{
-		embeddedCache.Remove(path, out var asset);
-		asset?.UnLoad();
+		embeddedCache.Remove(path, out var value);
+		value?.asset.UnLoad();
 	}
 }
 
@@ -121,9 +149,24 @@ public interface ICustomAsset
 
 public interface IAssetConfig;
 
-public class AssetProperty(Stream stream, string extension, IAssetConfig config)
+public class AssetReference(IAsset asset, IAssetConfig config)
 {
-	public readonly Stream stream = stream;
-	public readonly string extension = extension;
+	public readonly IAsset asset = asset;
 	public readonly IAssetConfig config = config;
+}
+
+public class AssetProperty
+{
+	public readonly Stream stream;
+	public readonly string extension;
+	public readonly IAssetConfig config;
+	public readonly bool onHotReload;
+	
+	internal AssetProperty(Stream stream, string extension, IAssetConfig config, bool onHotReload = false)
+	{
+		this.stream = stream;
+		this.extension = extension;
+		this.config = config;
+		this.onHotReload = onHotReload;
+	}
 }

@@ -11,9 +11,11 @@ public class UIElement
 	
 	public bool isActif => active && parentActive && !isDestroyed;
 	public bool canDraw => material != null && mesh is { isValid: true };
-	public bool isDestroyed { get; private set; }
 	
-	protected Vector2Int realPosition { get; private set; }
+	public bool isDestroyed { get; private set; }
+	public Vector2Int realPosition { get; private set; }
+	public Matrix3X3 inversedMatrix { get; private set; }
+	
 	protected bool scaleWithoutSize;
 	
 	private readonly List<UIElement> children = [];
@@ -283,10 +285,10 @@ public class UIElement
 		parent.children.Insert(0, this);
 	}
 	
-	public bool ContainsPoint(Vector2Int point)
+	public bool ContainsPoint(Vector2 point)
 	{
-		point -= realPosition;
-		return point >= Vector2Int.zero && point <= scaledSize;
+		var localPoint = inversedMatrix.TransformPoint(point - mesh.bounds.position);
+		return scaleWithoutSize ? localPoint >= Vector2.zero && localPoint <= scaledSize : localPoint >= mesh.bounds.position && localPoint <= -mesh.bounds.position;
 	}
 	
 	public void MarkMatrixIsDirty()
@@ -398,8 +400,8 @@ public class UIElement
 		realPosition = calculatePosition += position + parent.realPosition - scaledPivotSize + (parent.scaledSize * anchorMin).ToVector2Int();
 		calculatePosition -= mesh is { isValid: true } ? (!scaleWithoutSize ? scaledSize * mesh.bounds.position : mesh.bounds.position).ToVector2Int() : Vector2Int.zero;
 		var matrixScale = scaleWithoutSize ? scale : scaledSize;
-		matrix = Matrix3X3.CreateScale(matrixScale) *
-				 Matrix3X3.CreateRotation(float.DegreesToRadians(rotation)) *
-				 Matrix3X3.CreateTranslation(calculatePosition);
+		inversedMatrix = (matrix = Matrix3X3.CreateScale(matrixScale) *
+								   Matrix3X3.CreateRotation(float.DegreesToRadians(rotation)) *
+								   Matrix3X3.CreateTranslation(calculatePosition)).Inverse();
 	}
 }

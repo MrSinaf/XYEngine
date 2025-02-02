@@ -5,6 +5,7 @@ using Silk.NET.Maths;
 using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
 using StbImageSharp;
+using XYEngine.Debugs;
 using XYEngine.Inputs;
 using XYEngine.Scenes;
 
@@ -85,14 +86,19 @@ public class GameWindow
 		}
 		
 		var icon = new RawImage(result.Width, result.Height, result.Data);
+		var input = window.CreateInput();
+		var gl = window.CreateOpenGL();
+		
 		window.SetWindowIcon(ref icon);
 		window.Center();
 		
-		Graphics.Init(window.CreateOpenGL());
+		Graphics.Init(gl);
 		Graphics.Viewport(size);
 		
-		Input.Initialize(window.CreateInput());
+		Input.Initialize(input);
 		Audio.Initialize();
+		
+		XYDebug.Load(gl, window, input);
 		
 		SceneManager.SetCurrentScene<SplashScreen>();
 	}
@@ -103,6 +109,7 @@ public class GameWindow
 		try
 		{
 			SceneManager.Update();
+			XYDebug.Update();
 		}
 		catch (Exception e)
 		{
@@ -112,7 +119,11 @@ public class GameWindow
 		Input.EndInput();
 	}
 	
-	private static void Render(double delta) => SceneManager.Render();
+	private static void Render(double delta)
+	{
+		SceneManager.Render();
+		XYDebug.Render();
+	}
 	
 	private static void FramebufferResize(Vector2D<int> value)
 	{

@@ -7,14 +7,24 @@ namespace XYEngine.Rendering;
 public class GProgram : IDisposable
 {
 	private static uint? currentHandle;
-	public readonly uint handle;
 	
+	public readonly uint handle = gl.CreateProgram();
 	public bool isDisposed { get; protected set; }
 	
-	public GProgram(string vertexSource, string fragmentSource)
+	private uint vertexHandle;
+	private uint fragmentHandle;
+	
+	public void Use()
 	{
-		handle = gl.CreateProgram();
+		if (currentHandle == handle)
+			return;
 		
+		gl.UseProgram(handle);
+		currentHandle = handle;
+	}
+	
+	public void Compile(string vertexSource, string fragmentSource)
+	{
 		if (!string.IsNullOrEmpty(vertexSource))
 			CompileShader(ShaderType.VertexShader, vertexSource);
 		
@@ -56,17 +66,22 @@ public class GProgram : IDisposable
 			}
 			
 			gl.AttachShader(handle, shader);
-			gl.DeleteShader(shader);
+			
+			if (type == ShaderType.VertexShader)
+				vertexHandle = shader;
+			else if (type == ShaderType.FragmentShader)
+				fragmentHandle = shader;
 		}
 	}
 	
-	public void Use()
+	public void Decompile()
 	{
-		if (currentHandle == handle)
-			return;
+		gl.DetachShader(handle, vertexHandle);
+		gl.DeleteShader(vertexHandle);
+		gl.DetachShader(handle, fragmentHandle);
+		gl.DeleteShader(fragmentHandle);
 		
-		gl.UseProgram(handle);
-		currentHandle = handle;
+		gl.Flush();
 	}
 	
 	public void SetUniform(string name, bool value)

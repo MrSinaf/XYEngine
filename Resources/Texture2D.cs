@@ -57,11 +57,16 @@ public class Texture2D : Texture, IAsset
 		var config = property.config as Texture2DConfig ?? defaultConfig;
 		SetWrap(config.wrap);
 		SetFilter((TextureMin)config.filter, config.filter);
+		isInGPU = false;
 		
 		Apply();
 	}
 	
-	public void UnLoad() => gTexture.Dispose();
+	public void UnLoad()
+	{
+		pixels = null;
+		gTexture.Dispose();
+	}
 }
 
 public record class Texture2DConfig(TextureWrap wrap, TextureMag filter) : IAssetConfig;

@@ -23,7 +23,7 @@ public class Shader : IAsset
 	
 	internal static readonly List<Shader> shaders = [];
 	
-	public GProgram gProgram { get; private set; }
+	public readonly GProgram gProgram = new ();
 	public ShaderConfig config { get; private set; }
 	
 	void IAsset.Load(AssetProperty property)
@@ -51,16 +51,17 @@ public class Shader : IAsset
 		if (vertexShader == null || fragmentShader == null)
 			throw new Exception("Impossible de continuer");
 		
-		gProgram = new GProgram(vertexShader, fragmentShader);
-		gProgram.Use();
-		shaders.Add(this);
+		if (property.onHotReload)
+			gProgram.Decompile();
+		gProgram.Compile(vertexShader, fragmentShader);
+		
+		if (!property.onHotReload)
+			shaders.Add(this);
 	}
 	
 	void IAsset.UnLoad()
 	{
-		gProgram?.Dispose();
-		gProgram = null;
-		
+		gProgram.Dispose();
 		shaders.Remove(this);
 	}
 	
