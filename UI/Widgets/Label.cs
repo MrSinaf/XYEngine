@@ -25,7 +25,6 @@ public class Label : UIElement
 		set
 		{
 			field = value;
-			material.SetProperty("mainTex", value.bitmap);
 			isDirty = true;
 		}
 	}
@@ -65,6 +64,8 @@ public class Label : UIElement
 	{
 		if (isDirty)
 			GenerateText();
+		
+		material.shader.gProgram.SetUniform("mainTex", font.bitmap);
 	}
 	
 	private void GenerateText()
