@@ -6,16 +6,25 @@ using Silk.NET.Input;
 using Silk.NET.OpenGL;
 using Silk.NET.OpenGL.Extensions.ImGui;
 using Silk.NET.Windowing;
-using XYEngine.Scenes;
+using XYEngine.Inputs;
+using Key = XYEngine.Inputs.Key;
 
 namespace XYEngine.Debugs;
 
+public enum DebugState { Full, Limited, None }
+
 public static class XYDebug
 {
+	public static DebugState state { get; internal set; } = DebugState.Full;
+	
 	private static ImGuiController imGuiController;
+	private static bool showMainMenuBar;
 	
 	internal static void Load(GL gl, IView view, IInputContext input)
 	{
+		if (state == DebugState.None)
+			return;
+		
 		imGuiController = new ImGuiController(gl, view, input);
 		var assembly = Assembly.GetExecutingAssembly();
 		using var stream = assembly.GetManifestResourceStream("XYEngine.assets.imgui_style.json");
@@ -40,60 +49,73 @@ public static class XYDebug
 	
 	internal static void Update()
 	{
+		if (state == DebugState.None)
+			return;
+		
 		imGuiController.Update(Time.delta);
 		DebugHotReload.Update();
+		
+		if (Input.IsKeyPressed(Key.ControlLeft) && Input.IsKeyDown(Key.F1))
+			showMainMenuBar = !showMainMenuBar;
 	}
 	
 	internal static void Render()
 	{
-		if (SceneManager.current.GetType() == typeof(SplashScreen))
+		if (state == DebugState.None)
 			return;
 		
-		ImGui.BeginMainMenuBar();
-		if (ImGui.BeginMenu("XY"))
+		if (showMainMenuBar)
 		{
-			if (ImGui.MenuItem("Reload Scene"))
+			ImGui.BeginMainMenuBar();
+			if (ImGui.BeginMenu("XY"))
 			{
-				SceneManager.current.InternalDestroy();
-				SceneManager.current.InternalStart();
-			}
-			
-			if (ImGui.BeginMenu("Display"))
-			{
-				if (ImGui.MenuItem("Windowed"))
-					GameWindow.SetDisplayMode(DisplayMode.Windowed);
-				if (ImGui.MenuItem("No Border"))
-					GameWindow.SetDisplayMode(DisplayMode.NoBorder);
-				if (ImGui.MenuItem("Fullscreen"))
-					GameWindow.SetDisplayMode(DisplayMode.FullScren);
+				if (ImGui.MenuItem("Reload Scene"))
+				{
+					SceneManager.current.InternalDestroy();
+					SceneManager.current.InternalStart();
+				}
+				
+				if (ImGui.BeginMenu("Display"))
+				{
+					if (ImGui.MenuItem("Windowed"))
+						GameWindow.SetDisplayMode(DisplayMode.Windowed);
+					if (ImGui.MenuItem("No Border"))
+						GameWindow.SetDisplayMode(DisplayMode.NoBorder);
+					if (ImGui.MenuItem("Fullscreen"))
+						GameWindow.SetDisplayMode(DisplayMode.FullScren);
+					
+					ImGui.EndMenu();
+				}
+				
+				if (ImGui.MenuItem("Exit"))
+					GameWindow.Close();
 				
 				ImGui.EndMenu();
 			}
 			
-			if (ImGui.MenuItem("Exit"))
-				GameWindow.Close();
+			if (ImGui.BeginMenu("Tools"))
+			{
+				if (ImGui.MenuItem("Assets"))
+					DebugAssets.showAssets = true;
+				
+				if (ImGui.MenuItem("Canvas"))
+					DebugCanvas.showCanvas = true;
+				
+				ImGui.Separator();
+				
+				
+				if (state == DebugState.Full)
+				{
+					var hotReloadActif = DebugHotReload.actif;
+					if (ImGui.MenuItem("HotReload (TEST)", string.Empty, ref hotReloadActif))
+						DebugHotReload.actif = !DebugHotReload.actif;
+				}
+				
+				ImGui.EndMenu();
+			}
 			
-			ImGui.EndMenu();
+			ImGui.EndMainMenuBar();
 		}
-		
-		if (ImGui.BeginMenu("Tools"))
-		{
-			if (ImGui.MenuItem("Assets"))
-				DebugAssets.showAssets = true;
-			
-			if (ImGui.MenuItem("Canvas"))
-				DebugCanvas.showCanvas = true;
-			
-			ImGui.Separator();
-			
-			var hotReloadActif = DebugHotReload.actif;
-			if (ImGui.MenuItem("HotReload", string.Empty, ref hotReloadActif))
-				DebugHotReload.actif = !DebugHotReload.actif;
-			
-			ImGui.EndMenu();
-		}
-		
-		ImGui.EndMainMenuBar();
 		
 		DebugCanvas.Render();
 		DebugAssets.Render();

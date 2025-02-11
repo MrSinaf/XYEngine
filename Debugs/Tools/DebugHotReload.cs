@@ -48,7 +48,18 @@ internal class DebugHotReload
 	internal static void Update()
 	{
 		foreach (var (path, source) in hotReloadList)
-			AssetManager.ReloadAsset(path, source);
+		{
+			try
+			{
+				AssetManager.ReloadAsset(path, source);
+				XY.InternalLog("HOT RELOAD", $"'{path}' reloaded.", TypeLog.Info);
+			}
+			catch
+			{
+				hotReloadList.Remove(path);
+				throw;
+			}
+		}
 		
 		hotReloadList.Clear();
 	}

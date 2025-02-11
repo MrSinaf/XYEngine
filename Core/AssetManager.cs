@@ -19,7 +19,13 @@ public static class AssetManager
 			
 			try
 			{
-				using var stream = new FileStream(sourcePath, FileMode.Open);
+				using var stream = new MemoryStream();
+				using (var fileStream = new FileStream(sourcePath, FileMode.Open, FileAccess.Read))
+				{
+					fileStream.CopyTo(stream);
+					stream.Position = 0;
+				}
+
 				reference.asset.Load(new AssetProperty(stream, Path.GetExtension(path).ToLower(), reference.config, true));
 				File.Copy(sourcePath, Path.Combine(AppContext.BaseDirectory, "assets", path), true);
 			}

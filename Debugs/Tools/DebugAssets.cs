@@ -1,6 +1,7 @@
 ﻿using System.Numerics;
 using System.Reflection;
 using ImGuiNET;
+using XYEngine.Utils;
 
 namespace XYEngine.Debugs;
 
@@ -95,8 +96,7 @@ internal static class DebugAssets
 				}
 			}
 			
-			if (ImGui.TreeNodeEx("assets##main-root", ImGuiTreeNodeFlags.DefaultOpen))
-				RenderTree(root, "");
+			RenderTree(root, "");
 			ImGui.TreePop();
 		}
 		
@@ -132,8 +132,8 @@ internal static class DebugAssets
 			ImGui.PushStyleColor(ImGuiCol.Text, 0xFF4A4B50);
 			ImGui.Text(selectedAsset.asset.GetType().Name);
 			ImGui.PopStyleColor();
-			if (ImGui.SmallButton("Hot Reload"))
-				AssetManager.ReloadAsset(selectedAsset.path, Path.Combine(DebugHotReload.assetsSourcePath, selectedAsset.path));
+			if (!cacheEmbeddedTab && XYDebug.state == DebugState.Full && ImGui.SmallButton("Hot Reload"))
+				Utility.JustDoIt(() => AssetManager.ReloadAsset(selectedAsset.path, Path.Combine(DebugHotReload.assetsSourcePath, selectedAsset.path)));
 			ImGui.Separator();
 			ImGui.Spacing();
 			
