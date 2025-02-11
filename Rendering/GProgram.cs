@@ -38,9 +38,7 @@ public class GProgram : IDisposable
 		// Vérifie son statut :
 		if (statusCode != 1)
 		{
-			isDisposed = true;
-			gl.DeleteProgram(handle);
-			
+			Decompile();
 			throw new InvalidOperationException($"Failed to Link Shader.\n{statusInfo}\n\nStatus Code: {statusCode}");
 		}
 		
@@ -58,10 +56,7 @@ public class GProgram : IDisposable
 			// Vérifie son statut :
 			if (statusCode != 1)
 			{
-				isDisposed = true;
-				gl.DeleteShader(shader);
-				gl.DeleteProgram(handle);
-				
+				Decompile();
 				throw new InvalidOperationException($"Failed to Compile {type} Source.\n{statusInfo}\n\nStatus Code: {statusCode}");
 			}
 			
