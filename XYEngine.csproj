@@ -15,6 +15,7 @@
     <ItemGroup>
         <EmbeddedResource Include="assets\**\*"/>
         <PackageReference Include="FreeTypeSharp" Version="3.0.0"/>
+        <PackageReference Include="JetBrains.Annotations" Version="2024.3.0"/>
         <PackageReference Include="NVorbis" Version="0.10.5"/>
         <PackageReference Include="Silk.NET.Input.Glfw" Version="2.22.0"/>
         <PackageReference Include="Silk.NET.OpenAL" Version="2.22.0"/>
