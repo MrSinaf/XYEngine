@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using System.Runtime.InteropServices;
 using XYEngine.Scenes;
 
 namespace XYEngine;
@@ -21,6 +22,10 @@ public static class XY
 			InternalLog("XY", "You can only call 'LaunchGame' once!", TypeLog.Error);
 			return;
 		}
+		
+		string[] nativeLibsName = ["cimgui", "freetype", "glfw3", "soft_oal"];
+		foreach (var lib in nativeLibsName)
+			ResolveNativeLibrary(lib);
 		
 		AppDomain.CurrentDomain.AssemblyResolve += ResolveAssembly;
 		InternalLog($"  XYEngine v{version} - {VERSION_STATE}", TypeLog.Info);
@@ -81,5 +86,14 @@ public static class XY
 	{
 		var assemblyPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "packages", new AssemblyName(args.Name).Name + ".dll");
 		return !File.Exists(assemblyPath) ? null : Assembly.LoadFrom(assemblyPath);
+	}
+	
+	private static void ResolveNativeLibrary(string libraryName)
+	{
+		var nativeLibExtension = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "{0}.dll" : RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ? "lib{0}.so" : "lib{0}.dylib";
+		var nativeLibPath = Path.Combine(AppContext.BaseDirectory, "runtimes", RuntimeInformation.RuntimeIdentifier, "native", string.Format(nativeLibExtension, libraryName));
+		
+		if (File.Exists(nativeLibPath))
+			NativeLibrary.Load(nativeLibPath);
 	}
 }
