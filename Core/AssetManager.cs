@@ -25,11 +25,11 @@ public static class AssetManager
 					fileStream.CopyTo(stream);
 					stream.Position = 0;
 				}
-
+				
 				reference.asset.Load(new AssetProperty(stream, Path.GetExtension(path).ToLower(), reference.config, true));
 				File.Copy(sourcePath, Path.Combine(AppContext.BaseDirectory, "assets", path), true);
 			}
-			catch (Exception e)
+			catch
 			{
 				var fullPath = Path.Combine("assets", path);
 				if (!File.Exists(fullPath))

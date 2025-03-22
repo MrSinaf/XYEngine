@@ -29,6 +29,7 @@ public static class XYDebug
 		var assembly = Assembly.GetExecutingAssembly();
 		using var stream = assembly.GetManifestResourceStream("XYEngine.assets.imgui_style.json");
 		
+		var style = ImGui.GetStyle();
 		if (stream != null)
 		{
 			using var reader = new StreamReader(stream);
@@ -37,11 +38,17 @@ public static class XYDebug
 			
 			if (colorArray != null)
 			{
-				var colors = ImGui.GetStyle().Colors;
+				var colors = style.Colors;
 				for (var i = 0; i < colorArray.Length && i < colors.Count; i++)
 					colors[i] = new Vector4(colorArray[i][0], colorArray[i][1], colorArray[i][2], colorArray[i][3]);
 			}
 		}
+		
+		style.WindowRounding = 8;
+		style.FrameRounding = 3;
+		style.WindowTitleAlign = new System.Numerics.Vector2(0.5F, 0.5F);
+		style.WindowMenuButtonPosition = ImGuiDir.None;
+		
 		
 		ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.DockingEnable;
 		DebugHotReload.Init();
@@ -55,7 +62,7 @@ public static class XYDebug
 		imGuiController.Update(Time.delta);
 		DebugHotReload.Update();
 		
-		if (Input.IsKeyPressed(Key.ControlLeft) && Input.IsKeyDown(Key.F1))
+		if (Input.IsKeyHeldDown(Key.ControlLeft) && Input.IsKeyPressed(Key.F1))
 			showMainMenuBar = !showMainMenuBar;
 	}
 	

@@ -2,11 +2,34 @@
 
 public struct Vector2(float x, float y) : IEquatable<Vector2>
 {
+	/// <summary>
+	///     Vector2(0, 0)
+	/// </summary>
 	public static Vector2 zero => new ();
+	
+	/// <summary>
+	///     Vector2(1, 1)
+	/// </summary>
 	public static Vector2 one => new (1);
+	
+	/// <summary>
+	///     Vector2(-1, 0)
+	/// </summary>
 	public static Vector2 left => new (-1, 0);
+	
+	/// <summary>
+	///     Vector2 (1, 0)
+	/// </summary>
 	public static Vector2 right => new (1, 0);
+	
+	/// <summary>
+	///     Vector2(0, 1)
+	/// </summary>
 	public static Vector2 top => new (0, 1);
+	
+	/// <summary>
+	///     Vector2(0, -1)
+	/// </summary>
 	public static Vector2 bottom => new (0, -1);
 	
 	public float x { get; set; } = x;

@@ -29,7 +29,6 @@ internal static class DebugAssets
 		ImGui.BeginChild("Tabs");
 		if (ImGui.BeginTabBar("CacheTabs"))
 		{
-			
 			if (ImGui.BeginTabItem("Cache"))
 			{
 				cacheEmbeddedTab = false;

@@ -41,7 +41,7 @@ internal class SplashScreen : Scene
 		AssetManager.LoadEmbeddedAsset<Texture2D>("textures.white_pixel.png", Texture2D.internalConfig);
 		
 		var font = AssetManager.LoadEmbeddedAsset<Font>("fonts.jetbrains.ttf");
-		font.GenerateBitmap(16, 196);
+		font.GenerateBitmap(16, 256);
 		AssetManager.LoadEmbeddedAsset<Shader>("shaders.ui.shadxy", new ShaderConfig(material =>
 		{
 			material.SetProperty("uvRegion", new Region(Vector2.zero, Vector2.one));

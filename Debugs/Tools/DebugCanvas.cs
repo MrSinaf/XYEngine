@@ -56,19 +56,19 @@ internal static class DebugCanvas
 					ImGui.AlignTextToFramePadding();
 					ImGui.Text(p.Name);
 					ImGui.NextColumn();
-					var value = (string)p.GetValue(cElement);
+					var value = ((string)p.GetValue(cElement)).Replace("\n", @"\n");
 					if (ImGui.InputText($"##{p.Name}", ref value, 9999))
-						p.SetValue(cElement, value);
+						p.SetValue(cElement, value.Replace(@"\n", "\n"));
 					ImGui.NextColumn();
 				}
-				else if (p.PropertyType == typeof(Vector2))
+				else if (p.PropertyType == typeof(bool))
 				{
 					ImGui.AlignTextToFramePadding();
 					ImGui.Text(p.Name);
 					ImGui.NextColumn();
-					var value = XYDebug.ToSystem((Vector2)p.GetValue(cElement));
-					if (ImGui.DragFloat2($"##{p.Name}", ref value, 0.05F))
-						p.SetValue(cElement, XYDebug.ToXY(value));
+					var value = (bool)p.GetValue(cElement);
+					if (ImGui.Checkbox($"##{p.Name}", ref value))
+						p.SetValue(cElement, value);
 					ImGui.NextColumn();
 				}
 				else if (p.PropertyType == typeof(Vector2Int))
@@ -117,7 +117,8 @@ internal static class DebugCanvas
 		{
 			if (element == cElement)
 				ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0, 0.7F, 0, 1));
-			var nodeOpen = ImGui.TreeNodeEx(element.GetType().Name, element.childrenArray.Length == 0 ? ImGuiTreeNodeFlags.Leaf : ImGuiTreeNodeFlags.None | ImGuiTreeNodeFlags.OpenOnArrow);
+			var nodeOpen = ImGui.TreeNodeEx(element.GetType().Name,
+											element.childrenArray.Length == 0 ? ImGuiTreeNodeFlags.Leaf : ImGuiTreeNodeFlags.None | ImGuiTreeNodeFlags.OpenOnArrow);
 			if (element == cElement)
 				ImGui.PopStyleColor();
 			
@@ -126,7 +127,6 @@ internal static class DebugCanvas
 			
 			if (nodeOpen)
 			{
-				
 				foreach (var child in element.childrenArray)
 					ShowChildrenTree(child);
 				

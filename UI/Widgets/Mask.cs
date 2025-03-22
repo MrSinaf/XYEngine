@@ -10,9 +10,6 @@ public class Mask : UIElement
 	
 	protected override void OnBeginDraw()
 	{
-		if (!active)
-			return;
-		
 		masks.Push(this);
 		ActiveMask();
 	}

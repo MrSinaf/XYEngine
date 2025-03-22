@@ -63,5 +63,4 @@ internal class DebugHotReload
 		
 		hotReloadList.Clear();
 	}
-	
 }

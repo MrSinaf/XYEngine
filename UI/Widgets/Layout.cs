@@ -66,7 +66,10 @@ public class Layout : UIElement
 	{
 		size = Vector2Int.zero;
 		
-		var array = inverse && !vertical || !inverse && vertical ? childrenArray.Reverse().ToArray() : childrenArray;
+		var array = childrenArray;
+		if (inverse && !vertical || !inverse && vertical)
+			Array.Reverse(array);
+		
 		for (var i = 0; i < array.Length; i++)
 		{
 			array[i].SimuleDraw();

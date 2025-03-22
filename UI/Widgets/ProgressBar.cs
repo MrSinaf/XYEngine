@@ -6,7 +6,7 @@ namespace XYEngine.UI.Widgets;
 public class ProgressBar : UIElement
 {
 	public readonly UIElement cursor;
-	public event Action<float> onValueChanged;
+	public event Action<float> onValueChanged = delegate { };
 	
 	public float maxValue
 	{
@@ -35,7 +35,7 @@ public class ProgressBar : UIElement
 		{
 			field = value > maxValue ? maxValue : value < minValue ? minValue : value;
 			cursor.scale = new Vector2((field - minValue) / (-minValue + maxValue), 1);
-			onValueChanged?.Invoke(field);
+			onValueChanged(field);
 		}
 	}
 	

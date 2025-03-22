@@ -81,12 +81,13 @@ public class Label : UIElement
 			Case.Lower => this.text.ToLower(),
 			_          => this.text
 		};
-		
+		var linesHeight = 0;
 		foreach (var c in text)
 		{
 			if (c == '\n')
 			{
-				position.y -= font.fontSize + 1;
+				linesHeight += font.lineHeight;
+				position.y -= font.fontSize + font.baseline;
 				position.x = 0;
 				continue;
 			}
@@ -94,12 +95,16 @@ public class Label : UIElement
 			if (!font.glyphs.TryGetValue(c, out var glyph))
 				glyph = font.glyphs['☒'];
 			
-			meshes.Add((new Rect(position + glyph.position.position, glyph.position.size), glyph.uv));
-			position.x += glyph.position.size.x + 1;
+			var x = position.x + glyph.bearing.x;
+			var y = position.y - (glyph.height - glyph.bearing.y) + font.baseline;
+			
+			meshes.Add((new Rect(new Vector2(x, y), glyph.atlasRect.size), glyph.uv));
+			position.x += glyph.advanceX;
 		}
 		
 		mesh = MeshFactory.CreateQuads(meshes.ToArray()).Apply();
-		size = mesh.bounds.size.ToVector2Int();
+		size = new Vector2Int((int)mesh.bounds.size.x, linesHeight + font.lineHeight);
+		offset = new Vector2Int(0, linesHeight);
 		isDirty = false;
 	}
 	

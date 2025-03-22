@@ -1,3 +1,4 @@
+using XYEngine.Inputs;
 using XYEngine.Resources;
 using XYEngine.Utils;
 
@@ -14,11 +15,22 @@ public class Button : UIElement
 	public Button(string text, Action onClick, string prefab = null)
 	{
 		base.AddChild(label = new Label(text));
-		this.onClick = onClick ?? (() => { });
+		this.onClick = onClick ?? delegate { };
 		
-		UIEvent.Register(this, UIEvent.Type.MouseClick, this.onClick.Invoke);
+		Input.clickDown += OnClickDown;
+		
 		UIPrefab.Apply(this, prefab);
 	}
+	
+	private void OnClickDown(MouseButton mouseButton)
+	{
+		if (!isActif && mouseButton == MouseButton.Left && !ContainsPoint(Input.mousePosition))
+			return;
+		
+		onClick.Invoke();
+	}
+	
+	protected override void OnDestroy() => Input.clickDown -= OnClickDown;
 	
 	[IsDefaultPrefab]
 	public static void DefaultPrefab(Button e)

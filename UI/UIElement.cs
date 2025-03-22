@@ -24,7 +24,7 @@ public class UIElement
 	
 	#region GetSet
 	
-	public virtual bool active
+	private bool parentActive
 	{
 		get;
 		set
@@ -35,11 +35,21 @@ public class UIElement
 		}
 	} = true;
 	
+	protected virtual Vector2Int offset
+	{
+		get;
+		set
+		{
+			field = value;
+			MarkMatrixIsDirty();
+		}
+	}
+	
 	public virtual Mesh mesh { get; set; }
 	
 	public virtual Material material { get; set; }
 	
-	private bool parentActive
+	public virtual bool active
 	{
 		get;
 		set
@@ -199,6 +209,8 @@ public class UIElement
 		}
 	} = Matrix3X3.Identity();
 	
+	public virtual bool visible { get; set; } = true;
+	
 	public virtual Color tint { get; set; } = Color.white;
 	
 	public virtual float opacity { get; set; } = 1;
@@ -347,7 +359,7 @@ public class UIElement
 		if (dirtyMatrix)
 			BuildMatrix();
 		
-		if (canDraw)
+		if (canDraw && visible)
 		{
 			var program = material.shader.gProgram;
 			program.SetUniform("modelSize", scaledSize);
@@ -398,10 +410,12 @@ public class UIElement
 		}
 		
 		realPosition = calculatePosition += position + parent.realPosition - scaledPivotSize + (parent.scaledSize * anchorMin).ToVector2Int();
-		calculatePosition -= mesh is { isValid: true } ? (!scaleWithoutSize ? scaledSize * mesh.bounds.position : mesh.bounds.position).ToVector2Int() : Vector2Int.zero;
+		if (mesh is { isValid: true } && !scaleWithoutSize)
+			calculatePosition -= (scaledSize * mesh.bounds.position).ToVector2Int();
+		
 		var matrixScale = scaleWithoutSize ? scale : scaledSize;
 		inversedMatrix = (matrix = Matrix3X3.CreateScale(matrixScale) *
 								   Matrix3X3.CreateRotation(float.DegreesToRadians(rotation)) *
-								   Matrix3X3.CreateTranslation(calculatePosition)).Inverse();
+								   Matrix3X3.CreateTranslation(calculatePosition + offset)).Inverse();
 	}
 }

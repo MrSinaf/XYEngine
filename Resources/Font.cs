@@ -9,7 +9,7 @@ namespace XYEngine.Resources;
 
 public unsafe class Font : IAsset
 {
-	public const string CHARS = "☒0123456789abcdefghijklmnopqrstuvwxyzáàäâãåçéèëêíìïîóòöôõúùüûñABCDEFGHIJKLMNOPQRSTUVWXYZÁÀÄÂÃÅÇÉÈËÊÍÌÏÎÓÒÖÔÕÚÙÜÛÑ\"@#&%.:,;_-^*+=\\/|()[]{}<>" +
+	public const string CHARS = "☒ 0123456789abcdefghijklmnopqrstuvwxyzáàäâãåçéèëêíìïîóòöôõúùüûñABCDEFGHIJKLMNOPQRSTUVWXYZÁÀÄÂÃÅÇÉÈËÊÍÌÏÎÓÒÖÔÕÚÙÜÛÑ\"@#&%.:,;_-^*+=\\/|()[]{}<>" +
 								"~`'°€¥$¢£?!¿¡";
 	
 	private static FT_LibraryRec_* lib;
@@ -19,80 +19,6 @@ public unsafe class Font : IAsset
 	
 	private readonly Dictionary<uint, FontBitmap> fontBitmaps = [];
 	private FT_FaceRec_* face;
-	
-	public FontBitmap GetBitmap(uint size)
-	{
-		if (fontBitmaps.TryGetValue(size, out var fontSize))
-			return fontSize;
-		
-		throw new Exception($"The size of a bitmap in {size}px for '{name}' does not exist.");
-	}
-	
-	public FontBitmap GenerateBitmap(uint size, int bitmapSize = 1024)
-	{
-		XY.InternalLog("Font", $"Generating a bitmap {size}px for '{name}'.");
-		
-		var bitmap = new Texture2D(bitmapSize, bitmapSize, new Color[bitmapSize * bitmapSize]);
-		bitmap.SetFilter(TextureMin.Linear, TextureMag.Linear);
-		bitmap.SetWrap(TextureWrap.ClampToEdge);
-		
-		var glyphs = new Dictionary<char, Glyph>();
-		
-		FT_Set_Pixel_Sizes(face, 0, size);
-		
-		// Ajoute l'espace pour... espacer ᓚᘏᗢ
-		FT_Load_Glyph(face, FT_Get_Char_Index(face, ' '), FT_LOAD.FT_LOAD_DEFAULT);
-		// TODO > J'ai ajouté 0.75F, pour rendre l'espacement moins grand, car je le trouve très grand pour rien, (#｀-_ゝ-) il est clair que ce n'est pas la bonne méthode...
-		glyphs.Add(' ', new Glyph(new Rect(Vector2.zero, new Vector2((face->glyph->advance.x >> 6) * 0.75F, 0)), new Region()));
-		
-		var maxHeight = 0;
-		var position = Vector2Int.zero;
-		var baseLine = 0;
-		foreach (var c in CHARS)
-		{
-			FT_Load_Glyph(face, FT_Get_Char_Index(face, c), FT_LOAD.FT_LOAD_DEFAULT);
-			FT_Render_Glyph(face->glyph, FT_Render_Mode_.FT_RENDER_MODE_NORMAL);
-			var ftBitmap = face->glyph->bitmap;
-			var width = (int)ftBitmap.width;
-			var height = (int)ftBitmap.rows;
-			
-			if (position.x + width > bitmap.width)
-			{
-				position.x = 0;
-				position.y += maxHeight + 1;
-			}
-			
-			if (height > maxHeight)
-				maxHeight = height;
-			
-			var buffer = ftBitmap.buffer;
-			for (var y = 0; y < height; y++)
-			for (var x = 0; x < width; x++)
-			{
-				var grayscale = buffer[y * ftBitmap.pitch + x];
-				bitmap[position.x + x, position.y + height - y - 1] = new Color(255, 255, 255, grayscale);
-			}
-			
-			var offsetY = face->glyph->metrics.height - face->glyph->metrics.horiBearingY >> 6;
-			if (baseLine < offsetY)
-				baseLine = (int)offsetY;
-			
-			glyphs.Add(c, new Glyph(new Rect(new Vector2(0, -offsetY), new Vector2(width, height)),
-									new Region(position * bitmap.texel, (position + new Vector2(width, height)) * bitmap.texel)));
-			
-			position.x += width + 1;
-		}
-		
-		bitmap.Apply();
-		
-		var fontSize = new FontBitmap(size, baseLine, bitmap, new ReadOnlyDictionary<char, Glyph>(glyphs));
-		fontBitmaps.Add(size, fontSize);
-		
-		return fontSize;
-	}
-	
-	public uint[] GetBitmapSizes() => fontBitmaps.Keys.ToArray();
-	public bool ContainsBitmapSize(uint size) => fontBitmaps.ContainsKey(size);
 	
 	void IAsset.Load(AssetProperty property)
 	{
@@ -111,27 +37,134 @@ public unsafe class Font : IAsset
 		
 		var bytes = property.stream.ToByteArray();
 		fixed (FT_FaceRec_** fixedFace = &face)
-		fixed (byte* ptr = bytes)
+		fixed (byte* bytesPtr = bytes)
 		{
-			FT_New_Memory_Face(lib, ptr, bytes.Length, 0, fixedFace);
+			var error = FT_New_Memory_Face(lib, bytesPtr, bytes.Length, 0, fixedFace);
+			if (error != 0)
+			{
+				if (error == FT_Error.FT_Err_Unknown_File_Format)
+					throw new Exception("The font format is not supported.");
+				
+				throw new Exception($"An error occurred while loading the font: {error}");
+			}
 		}
 		
 		name = Marshal.PtrToStringAnsi((IntPtr)face->family_name);
 	}
 	
 	void IAsset.UnLoad() => FT_Done_Face(face);
+	
+	public FontBitmap GetBitmap(uint size)
+	{
+		if (fontBitmaps.TryGetValue(size, out var fontSize))
+			return fontSize;
+		
+		throw new Exception($"The size of a bitmap in {size}px for '{name}' does not exist.");
+	}
+	
+	public FontBitmap GenerateBitmap(uint size, int bitmapSize = 1024)
+	{
+		XY.InternalLog("Font", $"Generating a bitmap {size}px for '{name}'.");
+		
+		var bitmap = new Texture2D(bitmapSize, bitmapSize, new Color[bitmapSize * bitmapSize]);
+		bitmap.SetFilter(TextureMin.Linear, TextureMag.Linear);
+		bitmap.SetWrap(TextureWrap.ClampToEdge);
+		
+		FT_Set_Pixel_Sizes(face, 0, size);
+		
+		var slot = face->glyph;
+		var pen = new Vector2Int(0, 8);
+		var glyphs = new Dictionary<char, Glyph>();
+		
+		foreach (var c in CHARS)
+		{
+			FT_Load_Char(face, c, FT_LOAD.FT_LOAD_RENDER);
+			
+			var ftBitmap = slot->bitmap;
+			var buffer = ftBitmap.buffer;
+			var width = ftBitmap.pitch;
+			var height = (int)ftBitmap.rows;
+			
+			if (pen.x + slot->bitmap_left + width > bitmapSize)
+			{
+				pen.x = 0;
+				pen.y += 30;
+			}
+			
+			for (var y = 0; y < height; y++)
+			for (var x = 0; x < width; x++)
+			{
+				var alpha = buffer[y * ftBitmap.pitch + x];
+				bitmap[pen.x + slot->bitmap_left + x, pen.y + slot->bitmap_top - y - 1] = new Color(255, 255, 255, alpha);
+			}
+			
+			// Position réelle où le glyphe est dessiné
+			var glyphX = pen.x + slot->bitmap_left;
+			var glyphY = pen.y + slot->bitmap_top - height; // Position Y ajustée pour l'inversion
+			
+			var glyphPos = new Vector2(glyphX, glyphY);
+			var position = new RectInt(new Vector2Int((int)(slot->advance.x >> 6), (int)(slot->advance.y >> 6)), new Vector2Int(width, height));
+			var uv = new Region(glyphPos * bitmap.texel, (glyphPos + position.size) * bitmap.texel);
+			glyphs.Add(c, new Glyph(position, uv, new Vector2Int(slot->bitmap_left, slot->bitmap_top), (int)(slot->advance.x >> 6)));
+			pen += new Vector2Int((int)(slot->advance.x >> 6), (int)(slot->advance.y >> 6));
+		}
+		
+		bitmap.Apply();
+		
+		var fontSize = new FontBitmap(size, (int)face->size->metrics.height >> 6, -(int)face->size->metrics.descender >> 6, bitmap, new ReadOnlyDictionary<char, Glyph>(glyphs));
+		fontBitmaps.Add(size, fontSize);
+		
+		return fontSize;
+	}
+	
+	public uint[] GetBitmapSizes() => fontBitmaps.Keys.ToArray();
+	
+	public bool ContainsBitmapSize(uint size) => fontBitmaps.ContainsKey(size);
 }
 
-public struct Glyph(Rect position, Region uv)
+public struct Glyph(RectInt atlasRect, Region uv, Vector2Int bearing, int advanceX)
 {
-	public readonly Rect position = position;
+	public readonly RectInt atlasRect = atlasRect;
 	public readonly Region uv = uv;
+	public readonly int width = atlasRect.size.x;
+	public readonly int height = atlasRect.size.y;
+	
+	public readonly Vector2Int bearing = bearing;
+	public readonly int advanceX = advanceX;
 }
 
-public class FontBitmap(uint fontSize, int baseLine, Texture2D bitmap, ReadOnlyDictionary<char, Glyph> glyphs)
+public class FontBitmap(uint fontSize, int lineHeight, int baseline, Texture2D bitmap, ReadOnlyDictionary<char, Glyph> glyphs)
 {
 	public readonly uint fontSize = fontSize;
-	public readonly int baseLine = baseLine;
+	public readonly int lineHeight = lineHeight;
+	public readonly int baseline = baseline;
 	public readonly ReadOnlyDictionary<char, Glyph> glyphs = glyphs;
 	public readonly Texture2D bitmap = bitmap;
+	
+	public int CalculTextSize(string text)
+	{
+		// TODO > Ne prends pas en charge les retours à la ligne
+		
+		var width = 0;
+		foreach (var c in text)
+			width += glyphs[c].advanceX;
+		
+		return width;
+	}
+	
+	public int GetCharInPositionText(string text, float x)
+	{
+		var width = 0F;
+		for (var i = 0; i < text.Length; i++)
+		{
+			var glyphWidth = glyphs[text[i]].advanceX;
+			
+			if (width + glyphWidth * 0.5F > x)
+				return i;
+			
+			width += glyphWidth;
+		}
+		
+		return text.Length;
+	}
 }

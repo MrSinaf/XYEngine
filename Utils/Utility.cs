@@ -18,7 +18,7 @@ public static class Utility
 		}
 		catch
 		{
-			// =-)
+			// (￣_￣|||)
 		}
 	}
 }
