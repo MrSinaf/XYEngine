@@ -299,6 +299,9 @@ public class UIElement
 	
 	public bool ContainsPoint(Vector2 point)
 	{
+		if (mesh is not { isValid: true })
+			return false; 
+		
 		var localPoint = inversedMatrix.TransformPoint(point - mesh.bounds.position);
 		return scaleWithoutSize ? localPoint >= Vector2.zero && localPoint <= scaledSize : localPoint >= mesh.bounds.position && localPoint <= -mesh.bounds.position;
 	}

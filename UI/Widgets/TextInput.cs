@@ -6,6 +6,7 @@ namespace XYEngine.UI.Widgets;
 
 public class TextInput : UIElement
 {
+	public readonly Mask mask;
 	public readonly Label valueLabel;
 	public readonly Label placeholderLabel;
 	public readonly UIElement caret;
@@ -26,6 +27,11 @@ public class TextInput : UIElement
 			caret.visible = true;
 			caret.position = new Vector2Int(valueLabel.font.CalculTextSize(this.value[..field]), 0);
 			selectionEnd = field;
+			
+			if (caret.position.x + caret.size.x > mask.size.x)
+				valueLabel.position = -new Vector2Int(caret.position.x - mask.size.x + caret.size.x, 0);
+			else
+				valueLabel.position = Vector2Int.zero;
 		}
 	}
 	
@@ -35,8 +41,15 @@ public class TextInput : UIElement
 		private set
 		{
 			field = value;
+			var selectionEndPosition = valueLabel.font.CalculTextSize(this.value[..field]);
+			
 			selection.position = caret.position;
-			selection.size = new Vector2Int(valueLabel.font.CalculTextSize(this.value[..field]) - caret.position.x, caret.size.y);
+			selection.size = new Vector2Int(selectionEndPosition - caret.position.x, caret.size.y);
+			
+			if (selectionEndPosition > mask.size.x)
+				valueLabel.position = -new Vector2Int(selectionEndPosition - mask.size.x + caret.size.x, 0);
+			else
+				valueLabel.position = Vector2Int.zero;
 		}
 	}
 	
@@ -65,6 +78,7 @@ public class TextInput : UIElement
 				cancellationHandle?.Cancel();
 				cancellationBlinks?.Cancel();
 				caret.visible = false;
+				selectionEnd = cursorPosition;
 				
 				Input.keyDown -= OnKeyDown;
 				Input.keyUp -= OnKeyUp;
@@ -81,8 +95,9 @@ public class TextInput : UIElement
 	
 	public TextInput(string placeholder = "", string value = "", string prefab = null)
 	{
-		base.AddChild(placeholderLabel = new Label(placeholder));
-		base.AddChild(valueLabel = new Label(value));
+		base.AddChild(mask = new Mask());
+		mask.AddChild(placeholderLabel = new Label(placeholder));
+		mask.AddChild(valueLabel = new Label(value));
 		valueLabel.AddChild(caret = new UIElement());
 		valueLabel.AddChild(selection = new UIElement());
 		
@@ -244,6 +259,10 @@ public class TextInput : UIElement
 		e.material = new Material(Shader.GetDefaultUI(), ("mainTex", AssetManager.GetEmbeddedAsset<Texture2D>("textures.white_pixel.png")));
 		e.size = new Vector2Int(200, 30);
 		e.tint = new Color(100, 30, 45);
+		
+		e.mask.anchorMin = Vector2.zero;
+		e.mask.anchorMax = Vector2.one;
+		e.mask.margin = new RegionInt(5, 0);
 		
 		e.placeholderLabel.tint = Color.grey;
 		e.placeholderLabel.pivotAndAnchors = new Vector2(0, 0.5F);
