@@ -24,7 +24,7 @@ public class Button : UIElement
 	
 	private void OnClickDown(MouseButton mouseButton)
 	{
-		if (!isActif && mouseButton == MouseButton.Left && !ContainsPoint(Input.mousePosition))
+		if (!isActif || mouseButton != MouseButton.Left || !ContainsPoint(Input.mousePosition))
 			return;
 		
 		onClick.Invoke();
