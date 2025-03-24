@@ -96,10 +96,10 @@ public class TextInput : UIElement
 	public TextInput(string placeholder = "", string value = "", string prefab = null)
 	{
 		base.AddChild(mask = new Mask());
-		mask.AddChild(placeholderLabel = new Label(placeholder));
-		mask.AddChild(valueLabel = new Label(value));
-		valueLabel.AddChild(caret = new UIElement());
-		valueLabel.AddChild(selection = new UIElement());
+		mask.AddChild(placeholderLabel = new Label(placeholder) { name = "placeholder" });
+		mask.AddChild(valueLabel = new Label(value) { name = "value" });
+		valueLabel.AddChild(caret = new UIElement { name = "caret" });
+		valueLabel.AddChild(selection = new UIElement { name = "selection" });
 		
 		UIPrefab.Apply(this, prefab);
 		caret.visible = false;

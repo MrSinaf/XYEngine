@@ -4,6 +4,7 @@ namespace XYEngine.UI;
 
 public class UIElement
 {
+	public string name;
 	public UIElement parent { get; private set; }
 	
 	public int nChild => children.Count;
@@ -239,30 +240,44 @@ public class UIElement
 		children.Remove(element);
 	}
 	
-	public virtual T GetParentType<T>() where T : UIElement
+	public virtual T GetParent<T>() where T : UIElement
 	{
 		if (parent is T element)
 			return element;
 		
 		foreach (var child in children)
-			return child.GetParentType<T>();
+			return child.GetParent<T>();
 		
 		return null;
 	}
 	
-	public virtual T GetChildType<T>() where T : UIElement
+	public virtual T GetChild<T>(bool recursif = false) where T : UIElement
 	{
 		foreach (var child in children)
 			if (child is T element)
 				return element;
 		
-		foreach (var child in children)
-			return child.GetChildType<T>();
+		if (recursif)
+			foreach (var child in children)
+				return child.GetChild<T>(true);
 		
 		return null;
 	}
 	
-	public virtual T[] GetChildrenType<T>() where T : UIElement
+	public virtual T GetChild<T>(string name, bool recursif = false) where T : UIElement
+	{
+		foreach (var child in children)
+			if (child is T element && element.name == name)
+				return element;
+		
+		if (recursif)
+			foreach (var child in children)
+				return child.GetChild<T>(name, true);
+		
+		return null;
+	}
+	
+	public virtual T[] GetChildren<T>(bool recursif = false) where T : UIElement
 	{
 		var list = new List<T>();
 		
@@ -270,9 +285,10 @@ public class UIElement
 			if (child is T element)
 				list.Add(element);
 		
-		foreach (var child in children)
-		foreach (var childBis in child.GetChildrenType<T>())
-			list.Add(childBis);
+		if (recursif)
+			foreach (var child in children)
+			foreach (var childBis in child.GetChildren<T>(true))
+				list.Add(childBis);
 		
 		return list.ToArray();
 	}

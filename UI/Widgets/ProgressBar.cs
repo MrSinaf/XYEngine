@@ -41,7 +41,7 @@ public class ProgressBar : UIElement
 	
 	public ProgressBar(float value, float minValue = 0, float maxValue = 1, string prefab = null)
 	{
-		base.AddChild(cursor = new UIElement());
+		base.AddChild(cursor = new UIElement { name = "cursor" });
 		
 		this.maxValue = maxValue;
 		this.minValue = minValue;

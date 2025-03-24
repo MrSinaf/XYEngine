@@ -117,7 +117,7 @@ internal static class DebugCanvas
 		{
 			if (element == cElement)
 				ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0, 0.7F, 0, 1));
-			var nodeOpen = ImGui.TreeNodeEx(element.GetType().Name,
+			var nodeOpen = ImGui.TreeNodeEx(string.IsNullOrEmpty(element.name) ? element.GetType().Name : $"{element.name} [{element.GetType().Name}]",
 											element.childrenArray.Length == 0 ? ImGuiTreeNodeFlags.Leaf : ImGuiTreeNodeFlags.None | ImGuiTreeNodeFlags.OpenOnArrow);
 			if (element == cElement)
 				ImGui.PopStyleColor();
