@@ -10,6 +10,23 @@ public struct RegionInt(Vector2Int position00, Vector2Int position11)
 	public RegionInt(int xz, int yw) : this(new Vector2Int(xz, yw), new Vector2Int(xz, yw)) { }
 	public RegionInt(int value) : this(new Vector2Int(value), new Vector2Int(value)) { }
 	
+	public RegionInt Intersection(RegionInt other)
+	{
+		var newPosition00 = new Vector2Int(
+			Math.Max(position00.x, other.position00.x),
+			Math.Max(position00.y, other.position00.y)
+		);
+		
+		var newPosition11 = new Vector2Int(
+			Math.Min(position11.x, other.position11.x),
+			Math.Min(position11.y, other.position11.y)
+		);
+		
+		if (newPosition11.x <= newPosition00.x || newPosition11.y <= newPosition00.y)
+			return new RegionInt(Vector2Int.zero, Vector2Int.zero);
+		
+		return new RegionInt(newPosition00, newPosition11);
+	}
 	
 	public static RegionInt operator *(RegionInt m, int scalar) => new (m.position00 * scalar, m.position11 * scalar);
 	public static RegionInt operator /(RegionInt m, int scalar) => new (m.position00 / scalar, m.position11 / scalar);

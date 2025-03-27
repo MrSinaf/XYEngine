@@ -2,31 +2,28 @@
 
 public struct Vector2(float x, float y) : IEquatable<Vector2>
 {
+	public const float EPSILON = 1e-5F;
+	
 	/// <summary>
 	///     Vector2(0, 0)
 	/// </summary>
 	public static Vector2 zero => new ();
-	
 	/// <summary>
 	///     Vector2(1, 1)
 	/// </summary>
 	public static Vector2 one => new (1);
-	
 	/// <summary>
 	///     Vector2(-1, 0)
 	/// </summary>
 	public static Vector2 left => new (-1, 0);
-	
 	/// <summary>
-	///     Vector2 (1, 0)
+	///     Vector2(1, 0)
 	/// </summary>
 	public static Vector2 right => new (1, 0);
-	
 	/// <summary>
 	///     Vector2(0, 1)
 	/// </summary>
 	public static Vector2 top => new (0, 1);
-	
 	/// <summary>
 	///     Vector2(0, -1)
 	/// </summary>
@@ -69,13 +66,13 @@ public struct Vector2(float x, float y) : IEquatable<Vector2>
 	public static Vector2 operator /(Vector2 a, Vector2 b) => new (a.x / b.x, a.y / b.y);
 	public static Vector2 operator -(Vector2 a) => new (-a.x, -a.y);
 	
-	public static bool operator ==(Vector2 a, Vector2 b) => a.x == b.x && a.y == b.y;
-	public static bool operator !=(Vector2 a, Vector2 b) => a.x != b.x || a.y != b.y;
+	public static bool operator ==(Vector2 a, Vector2 b) => MathF.Abs(a.x - b.x) <= EPSILON && MathF.Abs(a.y - b.y) <= EPSILON;
+	public static bool operator !=(Vector2 a, Vector2 b) => !(a == b);
 	
-	public static bool operator >(Vector2 a, Vector2 b) => a.x > b.x && a.y > b.y;
-	public static bool operator <(Vector2 a, Vector2 b) => a.x < b.x && a.y < b.y;
-	public static bool operator >=(Vector2 a, Vector2 b) => a.x >= b.x && a.y >= b.y;
-	public static bool operator <=(Vector2 a, Vector2 b) => a.x <= b.x && a.y <= b.y;
+	public static bool operator >(Vector2 a, Vector2 b) => a.length > b.length;
+	public static bool operator <(Vector2 a, Vector2 b) => a.length < b.length;
+	public static bool operator >=(Vector2 a, Vector2 b) => a.length >= b.length;
+	public static bool operator <=(Vector2 a, Vector2 b) => a.length <= b.length;
 	
 	public bool Equals(Vector2 other) => x.Equals(other.x) && y.Equals(other.y);
 	public override bool Equals(object obj) => obj is Vector2 other && Equals(other);

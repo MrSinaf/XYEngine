@@ -2,13 +2,37 @@
 
 public struct Vector2Int(int x, int y) : IEquatable<Vector2Int>
 {
+	/// <summary>
+	///     Vector2Int(0, 0)
+	/// </summary>
 	public static Vector2Int zero => new ();
+	/// <summary>
+	///     Vector2Int(1, 1)
+	/// </summary>
 	public static Vector2Int one => new (1);
+	/// <summary>
+	///     Vector2Int(-1, 0)
+	/// </summary>
+	public static Vector2 left => new (-1, 0);
+	/// <summary>
+	///     Vector2Int(1, 0)
+	/// </summary>
+	public static Vector2 right => new (1, 0);
+	/// <summary>
+	///     Vector2Int(0, 1)
+	/// </summary>
+	public static Vector2 top => new (0, 1);
+	/// <summary>
+	///     Vector2Int(0, -1)
+	/// </summary>
+	public static Vector2 bottom => new (0, -1);
 	
 	public Vector2Int(int xy) : this(xy, xy) { }
 	
 	public int x { get; set; } = x;
 	public int y { get; set; } = y;
+	
+	public float length => MathF.Sqrt((float)x * x + y * y);
 	
 	public readonly Vector2 ToVector2() => new (x, y);
 	
@@ -26,10 +50,10 @@ public struct Vector2Int(int x, int y) : IEquatable<Vector2Int>
 	public static bool operator ==(Vector2Int a, Vector2Int b) => a.x == b.x && a.y == b.y;
 	public static bool operator !=(Vector2Int a, Vector2Int b) => a.x != b.x && a.y != b.y;
 	
-	public static bool operator >(Vector2Int a, Vector2Int b) => a.x > b.x && a.y > b.y;
-	public static bool operator <(Vector2Int a, Vector2Int b) => a.x < b.x && a.y < b.y;
-	public static bool operator >=(Vector2Int a, Vector2Int b) => a.x >= b.x && a.y >= b.y;
-	public static bool operator <=(Vector2Int a, Vector2Int b) => a.x <= b.x && a.y <= b.y;
+	public static bool operator >(Vector2Int a, Vector2Int b) => a.length > b.length;
+	public static bool operator <(Vector2Int a, Vector2Int b) => a.length < b.length;
+	public static bool operator >=(Vector2Int a, Vector2Int b) => a.length >= b.length;
+	public static bool operator <=(Vector2Int a, Vector2Int b) => a.length <= b.length;
 	
 	public bool Equals(Vector2Int other) => x.Equals(other.x) && y.Equals(other.y);
 	public override bool Equals(object obj) => obj is Vector2Int other && Equals(other);
