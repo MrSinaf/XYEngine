@@ -10,6 +10,7 @@ using StbImageSharp;
 using XYEngine.Debugs;
 using XYEngine.Inputs;
 using XYEngine.Scenes;
+using XYEngine.Utils;
 
 namespace XYEngine;
 
@@ -97,6 +98,7 @@ public class GameWindow
 		Graphics.Init(gl);
 		Graphics.Viewport(size);
 		
+		Primitif.Init();
 		Input.Initialize(input);
 		Audio.Initialize();
 		

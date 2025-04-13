@@ -1,5 +1,4 @@
 using XYEngine.Inputs;
-using XYEngine.Resources;
 using XYEngine.Utils;
 
 namespace XYEngine.UI.Widgets;
@@ -35,7 +34,7 @@ public class Button : UIElement
 	[IsDefaultPrefab]
 	public static void DefaultPrefab(Button e)
 	{
-		e.material = new Material(Shader.GetDefaultUI(), ("mainTex", AssetManager.GetEmbeddedAsset<Texture2D>("textures.white_pixel.png")));
+		e.material = new MaterialUI().SetTexture(Primitif.whitePixel);
 		e.mesh = MeshFactory.CreateQuad(Vector2.one).Apply();
 		e.size = new Vector2Int(200, 30);
 		e.tint = new Color(30, 30, 45);

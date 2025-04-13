@@ -1,4 +1,3 @@
-using XYEngine.Resources;
 using XYEngine.Utils;
 
 namespace XYEngine.UI.Widgets;
@@ -56,13 +55,13 @@ public class ProgressBar : UIElement
 	public static void DefaultPrefab(ProgressBar e)
 	{
 		e.cursor.mesh = MeshFactory.CreateQuad(Vector2.one).Apply();
-		e.cursor.material = new Material(Shader.GetDefaultUI(), ("mainTex", AssetManager.GetEmbeddedAsset<Texture2D>("textures.white_pixel.png")));
+		e.cursor.material = new MaterialUI().SetTexture(Primitif.whitePixel);
 		e.cursor.anchorMin = Vector2.zero;
 		e.cursor.anchorMax = Vector2.one;
 		e.cursor.tint = new Color(0x00FF00);
 		
 		e.mesh = MeshFactory.CreateQuad(Vector2.one).Apply();
-		e.material = new Material(Shader.GetDefaultUI(), ("mainTex", AssetManager.GetEmbeddedAsset<Texture2D>("textures.white_pixel.png")));
+		e.material = new MaterialUI().SetTexture(Primitif.whitePixel);
 		e.size = new Vector2Int(200, 10);
 	}
 }

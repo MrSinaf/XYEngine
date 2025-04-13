@@ -1,5 +1,4 @@
 using XYEngine.Inputs;
-using XYEngine.Resources;
 using XYEngine.Utils;
 
 namespace XYEngine.UI.Widgets;
@@ -256,7 +255,7 @@ public class TextInput : UIElement
 	public static void DefaultPrefab(TextInput e)
 	{
 		e.mesh = MeshFactory.CreateQuad(Vector2.one).Apply();
-		e.material = new Material(Shader.GetDefaultUI(), ("mainTex", AssetManager.GetEmbeddedAsset<Texture2D>("textures.white_pixel.png")));
+		e.material = new MaterialUI().SetTexture(Primitif.whitePixel);
 		e.size = new Vector2Int(200, 30);
 		e.tint = new Color(100, 30, 45);
 		
@@ -271,13 +270,13 @@ public class TextInput : UIElement
 		e.valueLabel.pivotAndAnchors = new Vector2(0, 0.5F);
 		
 		e.caret.mesh = MeshFactory.CreateQuad(Vector2.one).Apply();
-		e.caret.material = new Material(Shader.GetDefaultUI(), ("mainTex", AssetManager.GetEmbeddedAsset<Texture2D>("textures.white_pixel.png")));
+		e.caret.material = new MaterialUI().SetTexture(Primitif.whitePixel);
 		e.caret.size = new Vector2Int(2, 0);
 		e.caret.anchorMin = Vector2.zero;
 		e.caret.anchorMax = Vector2.top;
 		
 		e.selection.mesh = MeshFactory.CreateQuad(Vector2.one).Apply();
-		e.selection.material = new Material(Shader.GetDefaultUI(), ("mainTex", AssetManager.GetEmbeddedAsset<Texture2D>("textures.white_pixel.png")));
+		e.selection.material = new MaterialUI().SetTexture(Primitif.whitePixel);
 		e.selection.anchorMin = Vector2.zero;
 		e.selection.anchorMax = Vector2.top;
 		e.selection.opacity = 0.2F;
