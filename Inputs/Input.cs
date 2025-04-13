@@ -5,13 +5,13 @@ namespace XYEngine.Inputs;
 public static class Input
 {
 	public static Vector2 mousePosition { get; private set; }
-	public static float mouseScroll => mouse.ScrollWheels[0].Y;
 	
 	public static event Action<Key> keyDown = delegate { };
 	public static event Action<Key> keyUp = delegate { };
 	public static event Action<MouseButton> clickDown = delegate { };
 	public static event Action<MouseButton> clickUp = delegate { };
 	public static event Action<Vector2> mouseMove = delegate { };
+	public static event Action<Vector2> mouseScroll = delegate { };
 	public static Action<char> charDown = delegate { };
 	
 	private static readonly HashSet<Key> currentKeys = [];
@@ -49,6 +49,8 @@ public static class Input
 			mouseMove(newMousePosition - mousePosition);
 			mousePosition = newMousePosition;
 		};
+		
+		mouse.Scroll += (_, scroll) => mouseScroll(new Vector2(scroll.X, scroll.Y));
 	}
 	
 	internal static void Update()
