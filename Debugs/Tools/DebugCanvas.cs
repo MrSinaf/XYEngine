@@ -48,7 +48,7 @@ internal static class DebugCanvas
 			var properties = type.GetProperties();
 			foreach (var p in properties)
 			{
-				if (!p.CanRead || !p.CanWrite)
+				if (!p.CanRead)
 					continue;
 				
 				if (p.PropertyType == typeof(string))
@@ -57,7 +57,7 @@ internal static class DebugCanvas
 					ImGui.Text(p.Name);
 					ImGui.NextColumn();
 					var value = ((string)p.GetValue(cElement)).Replace("\n", @"\n");
-					if (ImGui.InputText($"##{p.Name}", ref value, 9999))
+					if (ImGui.InputText($"##{p.Name}", ref value, 9999) && !p.CanWrite)
 						p.SetValue(cElement, value.Replace(@"\n", "\n"));
 					ImGui.NextColumn();
 				}
@@ -67,8 +67,18 @@ internal static class DebugCanvas
 					ImGui.Text(p.Name);
 					ImGui.NextColumn();
 					var value = (bool)p.GetValue(cElement);
-					if (ImGui.Checkbox($"##{p.Name}", ref value))
+					if (ImGui.Checkbox($"##{p.Name}", ref value) && !p.CanWrite)
 						p.SetValue(cElement, value);
+					ImGui.NextColumn();
+				}
+				else if (p.PropertyType == typeof(Vector2))
+				{
+					ImGui.AlignTextToFramePadding();
+					ImGui.Text(p.Name);
+					ImGui.NextColumn();
+					var value = XYDebug.ToSystem((Vector2)p.GetValue(cElement));
+					if (ImGui.DragFloat2($"##{p.Name}", ref value, 0.1F) && !p.CanWrite)
+						p.SetValue(cElement, XYDebug.ToXY(value));
 					ImGui.NextColumn();
 				}
 				else if (p.PropertyType == typeof(Vector2Int))
@@ -77,8 +87,19 @@ internal static class DebugCanvas
 					ImGui.Text(p.Name);
 					ImGui.NextColumn();
 					var value = XYDebug.ToSystem((Vector2Int)p.GetValue(cElement));
-					if (ImGui.DragFloat2($"##{p.Name}", ref value, 1))
+					if (ImGui.DragFloat2($"##{p.Name}", ref value, 1) && !p.CanWrite)
 						p.SetValue(cElement, XYDebug.ToXY(value).ToVector2Int());
+					ImGui.NextColumn();
+				}
+				else if (p.PropertyType == typeof(RegionInt))
+				{
+					ImGui.AlignTextToFramePadding();
+					ImGui.Text(p.Name);
+					ImGui.NextColumn();
+					var value = (RegionInt)p.GetValue(cElement);
+					var convertedValue = new Vector4(value.position00.x, value.position00.y, value.position11.x, value.position11.y);
+					if (ImGui.DragFloat4($"##{p.Name}", ref convertedValue, 1) && !p.CanWrite)
+						p.SetValue(cElement, new RegionInt((int)convertedValue.X, (int)convertedValue.Y, (int)convertedValue.Z, (int)convertedValue.W));
 					ImGui.NextColumn();
 				}
 				else if (p.PropertyType == typeof(float))
@@ -87,7 +108,7 @@ internal static class DebugCanvas
 					ImGui.Text(p.Name);
 					ImGui.NextColumn();
 					var value = (float)p.GetValue(cElement);
-					if (ImGui.DragFloat($"##{p.Name}", ref value, 0.05F))
+					if (ImGui.DragFloat($"##{p.Name}", ref value, 0.05F) && !p.CanWrite)
 						p.SetValue(cElement, value);
 					ImGui.NextColumn();
 				}
@@ -97,7 +118,7 @@ internal static class DebugCanvas
 					ImGui.Text(p.Name);
 					ImGui.NextColumn();
 					var value = (int)p.GetValue(cElement);
-					if (ImGui.DragInt($"##{p.Name}", ref value))
+					if (ImGui.DragInt($"##{p.Name}", ref value) && !p.CanWrite)
 						p.SetValue(cElement, value);
 					ImGui.NextColumn();
 				}
