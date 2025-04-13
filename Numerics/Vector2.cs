@@ -40,6 +40,9 @@ public struct Vector2(float x, float y) : IEquatable<Vector2>
 	
 	public void Normalize() => this = normalized;
 	
+	public bool IsOutsideBounds(Vector2 min, Vector2 max) => x < min.x || x > max.x || y < min.y || y > max.y;
+	public bool IsInsideBounds(Vector2 min, Vector2 max) => x >= min.x && x <= max.x && y >= min.y && y <= max.y;
+	
 	public static Vector2 Lerp(Vector2 start, Vector2 end, float factor)
 	{
 		factor = Math.Clamp(factor, 0, 1);

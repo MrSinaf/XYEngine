@@ -11,7 +11,8 @@ public class UIElement
 	public UIElement[] childrenArray => children.ToArray();
 	
 	public bool isActif => active && parentActive && !isDestroyed;
-	public bool canDraw => material != null && mesh is { isValid: true };
+	public bool canDraw => isObservable && material != null && mesh is { isValid: true };
+	public bool isObservable => clipArea.position11 != Vector2Int.zero;
 	
 	public bool isDestroyed { get; private set; }
 	public Vector2Int realPosition { get; private set; }
@@ -22,6 +23,8 @@ public class UIElement
 	private readonly List<UIElement> children = [];
 	private bool dirtyMatrix;
 	private bool dirtyScaledSize;
+	
+	public event Action<UIElement> elementChanged = _ => { };
 	
 	#region GetSet
 	
@@ -210,6 +213,8 @@ public class UIElement
 		}
 	} = Matrix3X3.Identity();
 	
+	public virtual RegionInt clipArea { get; set; }
+	
 	public virtual bool visible { get; set; } = true;
 	
 	public virtual Color tint { get; set; } = Color.white;
@@ -217,8 +222,6 @@ public class UIElement
 	public virtual float opacity { get; set; } = 1;
 	
 	#endregion
-	
-	protected virtual void OnAdded() { }
 	
 	public virtual void AddChild(UIElement element)
 	{
@@ -316,10 +319,15 @@ public class UIElement
 	public bool ContainsPoint(Vector2 point)
 	{
 		if (mesh is not { isValid: true })
-			return false; 
+			return false;
+		
+		if (point.IsOutsideBounds(clipArea.position00, clipArea.position11))
+			return false;
 		
 		var localPoint = inversedMatrix.TransformPoint(point - mesh.bounds.position);
-		return scaleWithoutSize ? localPoint >= Vector2.zero && localPoint <= scaledSize : localPoint >= mesh.bounds.position && localPoint <= -mesh.bounds.position;
+		return scaleWithoutSize
+				   ? localPoint.IsInsideBounds(Vector2.zero, scaledSize)
+				   : localPoint.IsInsideBounds(mesh.bounds.position, -mesh.bounds.position);
 	}
 	
 	public void MarkMatrixIsDirty()
@@ -373,10 +381,10 @@ public class UIElement
 		if (!isActif)
 			return;
 		
-		OnBeginDraw();
-		
 		if (dirtyMatrix)
 			BuildMatrix();
+		
+		OnBeginDraw();
 		
 		if (canDraw && visible)
 		{
@@ -395,6 +403,7 @@ public class UIElement
 		OnEndDraw();
 	}
 	
+	protected virtual void OnAdded() { }
 	protected virtual void OnBeginDraw() { }
 	protected virtual void OnEndDraw() { }
 	protected virtual void OnDestroy() { }
@@ -429,6 +438,8 @@ public class UIElement
 		}
 		
 		realPosition = calculatePosition += position + parent.realPosition - scaledPivotSize + (parent.scaledSize * anchorMin).ToVector2Int();
+		clipArea = new RegionInt(realPosition, realPosition + scaledSize.ToVector2Int()).Intersection(parent.clipArea);
+		
 		if (mesh is { isValid: true } && !scaleWithoutSize)
 			calculatePosition -= (scaledSize * mesh.bounds.position).ToVector2Int();
 		
@@ -436,5 +447,6 @@ public class UIElement
 		inversedMatrix = (matrix = Matrix3X3.CreateScale(matrixScale) *
 								   Matrix3X3.CreateRotation(float.DegreesToRadians(rotation)) *
 								   Matrix3X3.CreateTranslation(calculatePosition + offset)).Inverse();
+		elementChanged(this);
 	}
 }

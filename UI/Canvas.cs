@@ -31,6 +31,8 @@ public class Canvas
 	private void ApplyResolution()
 	{
 		matrix = Matrix3X3.CreateOrthographic(Graphics.resolution.x, Graphics.resolution.y, false);
+		
+		root.clipArea = new RegionInt(Vector2Int.zero, Graphics.resolution);
 		root.size = Graphics.resolution;
 		root.UnmarkMatrixIsDirty();
 	}
