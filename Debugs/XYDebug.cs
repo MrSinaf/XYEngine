@@ -82,6 +82,12 @@ public static class XYDebug
 					SceneManager.current.InternalStart();
 				}
 				
+				if (ImGui.MenuItem("Rebuild UI"))
+				{
+					SceneManager.current.canvas.Destroy();
+					SceneManager.current.InternalBuildUI();
+				}
+				
 				if (ImGui.BeginMenu("Display"))
 				{
 					if (ImGui.MenuItem("Windowed"))

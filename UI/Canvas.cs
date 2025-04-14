@@ -4,7 +4,7 @@ namespace XYEngine.UI;
 
 public class Canvas
 {
-	public readonly RootElement root = new ();
+	internal readonly RootElement root = new ();
 	
 	private Matrix3X3 matrix;
 	

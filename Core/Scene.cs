@@ -14,9 +14,14 @@ public abstract class Scene
 	{
 		Time.ResetTime();
 		camera = new Camera(objects);
-		canvas = new Canvas();
 		
 		Start();
+	}
+	
+	internal void InternalBuildUI()
+	{
+		canvas = new Canvas();
+		BuildUI(canvas.root);
 	}
 	
 	internal void InternalUpdate()
@@ -58,6 +63,7 @@ public abstract class Scene
 	}
 	
 	protected virtual void Start() { }
+	protected virtual void BuildUI(RootElement root) { }
 	protected virtual void Destroy() { }
 	protected virtual void Update() { }
 	

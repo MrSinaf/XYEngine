@@ -28,6 +28,7 @@ public static class SceneManager
 		
 		XY.InternalLog("SCENE", $"Scene changed to '{type.Name}'.");
 		current.InternalStart();
+		current.InternalBuildUI();
 	}
 	
 	internal static void Update() => current.InternalUpdate();

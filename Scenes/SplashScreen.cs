@@ -1,4 +1,5 @@
 ﻿using XYEngine.Resources;
+using XYEngine.UI;
 using XYEngine.UI.Widgets;
 
 namespace XYEngine.Scenes;
@@ -7,6 +8,9 @@ internal class SplashScreen : Scene
 {
 	internal static Type startScene { private get; set; }
 	internal static Action action;
+	
+	private MaterialUI backMaterial;
+	private Texture2D xyTexture;
 	
 	protected override void Start()
 	{
@@ -17,15 +21,18 @@ internal class SplashScreen : Scene
 		var windowSize = GameWindow.size.ToVector2();
 		var backShader = AssetManager.LoadEmbeddedAsset<Shader>("shaders.splash_background.shadxy");
 		var backTexture = AssetManager.LoadEmbeddedAsset<Texture2D>("textures.spattern.png", Texture2D.internalConfig);
-		var xyTexture = AssetManager.LoadEmbeddedAsset<Texture2D>("textures.xyengine.png", Texture2D.internalConfig);
 		
-		var backMaterial = new Material(backShader, ("repeat", windowSize / backTexture.size), ("isBackground", true), ("mainTex", backTexture));
-		
-		canvas.root.AddChild(new Image(backMaterial) { anchorMax = Vector2.one });
-		canvas.root.AddChild(new Image(xyTexture) { pivotAndAnchors = new Vector2(0.5F), scale = new Vector2(15) });
-		canvas.root.AddChild(new Label($"v{XY.version} [{XY.VERSION_STATE}]") { position = new Vector2Int(10), tint = Color.green });
+		xyTexture = AssetManager.LoadEmbeddedAsset<Texture2D>("textures.xyengine.png", Texture2D.internalConfig);
+		backMaterial = new MaterialUI(backShader, ("repeat", windowSize / backTexture.size), ("isBackground", true)).SetTexture(backTexture);
 		
 		action?.Invoke();
+	}
+	
+	protected override void BuildUI(RootElement root)
+	{
+		root.AddChild(new Image(backMaterial) { anchorMax = Vector2.one });
+		root.AddChild(new Image(xyTexture) { pivotAndAnchors = new Vector2(0.5F), scale = new Vector2(15) });
+		root.AddChild(new Label($"v{XY.version} [{XY.VERSION_STATE}]") { position = new Vector2Int(10), tint = Color.green });
 	}
 	
 	protected override void Update()
