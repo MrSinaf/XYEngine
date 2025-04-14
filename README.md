@@ -27,6 +27,14 @@ moteur vise à simplifier l'intégration de logiques procédurales tout en perme
 - **Rendu 2D optimisé** : XYEngine étant un moteur exclusivement 2D, il bénéficie d'une optimisation accrue sur le rendu.
 - **Programmation moderne** : Utilisation de .NET9 et des fonctionnalités modernes, permettant d'avoir du code efficace et épuré.
 
+### 🔧〉Fonctionnalités en développement (v0.2)
+
+- [x] **ImGui intégré** : Éditeur ImGui intégré facilitant les actions de débogage en temps réel dans l'application.
+- [x] **Widgets UI avancés** : Ajout de widgets complexes tels que liste, scrollview et saisie de texte pour créer des interfaces riches.
+- [ ] **Shaders intégrés** : Shader de base intégré, facilitant la création et l'intégration rapide de nouveaux shaders.
+- [ ] **Chargement multi-thread** : Chargement des ressources géré sur plusieurs threads pour améliorer les performances.
+- [ ] **Déchargement automatique** : Libération automatique des ressources inutilisées comme les textures ou les meshes.
+
 ## 🖱️〉Compatibilités
 
 XYEngine a été créé et utilisé uniquement sur Windows x64. Théoriquement, il est possible de l'utiliser sur Linux, car les dépendances sont multiplateformes.
