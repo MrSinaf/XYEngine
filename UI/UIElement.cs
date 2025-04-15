@@ -429,7 +429,11 @@ public class UIElement
 			var anchorSize = new Vector2(MathF.Abs(anchorMin.x - anchorMax.x), MathF.Abs(anchorMin.y - anchorMax.y)) *
 							 (parent.scaledSize - parent.padding.position00 - parent.padding.position11);
 			
-			if (anchorSize.x == 0) anchorSize.x = size.x;
+			if (anchorSize.x == 0)
+			{
+				anchorSize.x = size.x;
+				calculatePosition.x += position.x;
+			}
 			else
 			{
 				anchorSize.x -= margin.position00.x + margin.position11.x;
@@ -437,7 +441,11 @@ public class UIElement
 				scaledPivotSize.x = 0;
 			}
 			
-			if (anchorSize.y == 0) anchorSize.y = size.y;
+			if (anchorSize.y == 0)
+			{
+				anchorSize.y = size.y;
+				calculatePosition.y += position.y;
+			}
 			else
 			{
 				anchorSize.y -= margin.position00.y + margin.position11.y;
@@ -447,9 +455,11 @@ public class UIElement
 			
 			size = anchorSize.ToVector2Int();
 		}
+		else
+			calculatePosition += position;
 		
 		
-		realPosition = calculatePosition += position + (parent.realPosition + parent.padding.position00) - scaledPivotSize +
+		realPosition = calculatePosition += parent.realPosition + parent.padding.position00 - scaledPivotSize +
 											((parent.scaledSize - parent.padding.position00 - parent.padding.position11) * anchorMin).ToVector2Int();
 		clipArea = new RegionInt(realPosition, realPosition + scaledSize.ToVector2Int()).Intersection(parent.clipArea);
 		
