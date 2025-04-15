@@ -139,6 +139,16 @@ public class UIElement
 		}
 	}
 	
+	public virtual RegionInt padding
+	{
+		get;
+		set
+		{
+			field = value;
+			MarkMatrixIsDirty();
+		}
+	}
+	
 	public virtual Vector2 pivot
 	{
 		get;
@@ -416,7 +426,8 @@ public class UIElement
 		
 		if (anchorMin != anchorMax)
 		{
-			var anchorSize = new Vector2(MathF.Abs(anchorMin.x - anchorMax.x), MathF.Abs(anchorMin.y - anchorMax.y)) * parent.size;
+			var anchorSize = new Vector2(MathF.Abs(anchorMin.x - anchorMax.x), MathF.Abs(anchorMin.y - anchorMax.y)) *
+							 (parent.scaledSize - parent.padding.position00 - parent.padding.position11);
 			
 			if (anchorSize.x == 0) anchorSize.x = size.x;
 			else
@@ -437,7 +448,9 @@ public class UIElement
 			size = anchorSize.ToVector2Int();
 		}
 		
-		realPosition = calculatePosition += position + parent.realPosition - scaledPivotSize + (parent.scaledSize * anchorMin).ToVector2Int();
+		
+		realPosition = calculatePosition += position + (parent.realPosition + parent.padding.position00) - scaledPivotSize +
+											((parent.scaledSize - parent.padding.position00 - parent.padding.position11) * anchorMin).ToVector2Int();
 		clipArea = new RegionInt(realPosition, realPosition + scaledSize.ToVector2Int()).Intersection(parent.clipArea);
 		
 		if (mesh is { isValid: true } && !scaleWithoutSize)
