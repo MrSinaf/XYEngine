@@ -57,7 +57,7 @@ internal static class DebugCanvas
 					ImGui.Text(p.Name);
 					ImGui.NextColumn();
 					var value = ((string)p.GetValue(cElement)).Replace("\n", @"\n");
-					if (ImGui.InputText($"##{p.Name}", ref value, 9999) && !p.CanWrite)
+					if (ImGui.InputText($"##{p.Name}", ref value, 9999, p.CanWrite ? ImGuiInputTextFlags.None : ImGuiInputTextFlags.ReadOnly))
 						p.SetValue(cElement, value.Replace(@"\n", "\n"));
 					ImGui.NextColumn();
 				}
@@ -67,7 +67,7 @@ internal static class DebugCanvas
 					ImGui.Text(p.Name);
 					ImGui.NextColumn();
 					var value = (bool)p.GetValue(cElement);
-					if (ImGui.Checkbox($"##{p.Name}", ref value) && !p.CanWrite)
+					if (ImGui.Checkbox($"##{p.Name}", ref value) && p.CanWrite)
 						p.SetValue(cElement, value);
 					ImGui.NextColumn();
 				}
@@ -77,7 +77,7 @@ internal static class DebugCanvas
 					ImGui.Text(p.Name);
 					ImGui.NextColumn();
 					var value = XYDebug.ToSystem((Vector2)p.GetValue(cElement));
-					if (ImGui.DragFloat2($"##{p.Name}", ref value, 0.1F) && !p.CanWrite)
+					if (ImGui.DragFloat2($"##{p.Name}", ref value, 0.1F) && p.CanWrite)
 						p.SetValue(cElement, XYDebug.ToXY(value));
 					ImGui.NextColumn();
 				}
@@ -86,9 +86,10 @@ internal static class DebugCanvas
 					ImGui.AlignTextToFramePadding();
 					ImGui.Text(p.Name);
 					ImGui.NextColumn();
-					var value = XYDebug.ToSystem((Vector2Int)p.GetValue(cElement));
-					if (ImGui.DragFloat2($"##{p.Name}", ref value, 1) && !p.CanWrite)
-						p.SetValue(cElement, XYDebug.ToXY(value).ToVector2Int());
+					var vector = (Vector2Int)p.GetValue(cElement);
+					int[] values = [vector.x, vector.y];
+					if (ImGui.DragInt2($"##{p.Name}", ref values[0], 1) && p.CanWrite)
+						p.SetValue(cElement, new Vector2Int(values[0], values[1]));
 					ImGui.NextColumn();
 				}
 				else if (p.PropertyType == typeof(RegionInt))
@@ -96,10 +97,10 @@ internal static class DebugCanvas
 					ImGui.AlignTextToFramePadding();
 					ImGui.Text(p.Name);
 					ImGui.NextColumn();
-					var value = (RegionInt)p.GetValue(cElement);
-					var convertedValue = new Vector4(value.position00.x, value.position00.y, value.position11.x, value.position11.y);
-					if (ImGui.DragFloat4($"##{p.Name}", ref convertedValue, 1) && !p.CanWrite)
-						p.SetValue(cElement, new RegionInt((int)convertedValue.X, (int)convertedValue.Y, (int)convertedValue.Z, (int)convertedValue.W));
+					var region = (RegionInt)p.GetValue(cElement);
+					int[] values = [region.position00.x, region.position00.y, region.position11.x, region.position11.y];
+					if (ImGui.DragInt4($"##{p.Name}", ref values[0], 1) && p.CanWrite)
+						p.SetValue(cElement, new RegionInt(values[0], values[1], values[2], values[3]));
 					ImGui.NextColumn();
 				}
 				else if (p.PropertyType == typeof(float))
@@ -108,7 +109,7 @@ internal static class DebugCanvas
 					ImGui.Text(p.Name);
 					ImGui.NextColumn();
 					var value = (float)p.GetValue(cElement);
-					if (ImGui.DragFloat($"##{p.Name}", ref value, 0.05F) && !p.CanWrite)
+					if (ImGui.DragFloat($"##{p.Name}", ref value, 0.05F) && p.CanWrite)
 						p.SetValue(cElement, value);
 					ImGui.NextColumn();
 				}
@@ -118,7 +119,7 @@ internal static class DebugCanvas
 					ImGui.Text(p.Name);
 					ImGui.NextColumn();
 					var value = (int)p.GetValue(cElement);
-					if (ImGui.DragInt($"##{p.Name}", ref value) && !p.CanWrite)
+					if (ImGui.DragInt($"##{p.Name}", ref value) && p.CanWrite)
 						p.SetValue(cElement, value);
 					ImGui.NextColumn();
 				}
