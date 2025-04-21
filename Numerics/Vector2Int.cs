@@ -36,10 +36,16 @@ public struct Vector2Int(int x, int y) : IEquatable<Vector2Int>
 	
 	public readonly Vector2 ToVector2() => new (x, y);
 	
+	public static Vector2Int Clamp(Vector2Int value, Vector2Int min, Vector2Int max) => new (
+		Math.Clamp(value.x, min.x, max.x),
+		Math.Clamp(value.y, min.y, max.y)
+	);
+	
 	public static Vector2Int operator /(Vector2Int a, int scalar) => scalar == 0 ? a : new Vector2Int(a.x / scalar, a.y / scalar);
-	public static Vector2Int operator /(Vector2Int a, float scalar) => scalar == 0 ? a : new Vector2Int((int)(a.x / scalar), (int)(a.y / scalar));
+	public static Vector2 operator /(Vector2Int a, float scalar) => scalar == 0 ? a : new Vector2(a.x / scalar, a.y / scalar);
 	public static Vector2Int operator /(int scalar, Vector2Int a) => scalar == 0 ? a : new Vector2Int(scalar / a.x, scalar / a.y);
 	public static Vector2Int operator *(Vector2Int a, int scalar) => new (a.x * scalar, a.y * scalar);
+	public static Vector2 operator *(Vector2Int a, float scalar) => new (a.x * scalar, a.y * scalar);
 	
 	public static Vector2Int operator +(Vector2Int a, Vector2Int b) => new (a.x + b.x, a.y + b.y);
 	public static Vector2Int operator -(Vector2Int a, Vector2Int b) => new (a.x - b.x, a.y - b.y);

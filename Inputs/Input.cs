@@ -77,7 +77,7 @@ public static class Input
 	public static bool IsKeyPressed(Key key) => !previousKeys.Contains(key) && currentKeys.Contains(key);
 	public static bool IsKeyReleased(Key key) => previousKeys.Contains(key) && !currentKeys.Contains(key);
 	
-	public static bool IsMouseButtonHeldDown(MouseButton button) => previousMouseButtons.Contains(button) && currentMouseButtons.Contains(button);
+	public static bool IsMouseButtonHeldDown(MouseButton button) => mouse.IsButtonPressed((Silk.NET.Input.MouseButton)button);
 	public static bool IsMouseButtonPressed(MouseButton button) => !previousMouseButtons.Contains(button) && currentMouseButtons.Contains(button);
 	public static bool IsMouseButtonReleased(MouseButton button) => previousMouseButtons.Contains(button) && !currentMouseButtons.Contains(button);
 }

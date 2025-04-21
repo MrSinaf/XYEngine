@@ -10,6 +10,7 @@ using StbImageSharp;
 using XYEngine.Debugs;
 using XYEngine.Inputs;
 using XYEngine.Scenes;
+using XYEngine.UI;
 using XYEngine.Utils;
 
 namespace XYEngine;
@@ -30,7 +31,7 @@ public class GameWindow
 		window = Window.Create(WindowOptions.Default with
 		{
 			Title = name,
-			VSync = true,
+			VSync = false,
 			
 			// Initialisation des paramètres pour le SplashScreen :
 			WindowBorder = WindowBorder.Hidden,
@@ -137,6 +138,7 @@ public class GameWindow
 			XY.InternalLog("Error", e, TypeLog.Error);
 		}
 		
+		UIEvent.Update();
 		Input.Update();
 	}
 	

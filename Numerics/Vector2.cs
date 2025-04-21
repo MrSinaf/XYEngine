@@ -49,6 +49,11 @@ public struct Vector2(float x, float y) : IEquatable<Vector2>
 		return new Vector2(start.x + (end.x - start.x) * factor, start.y + (end.y - start.y) * factor);
 	}
 	
+	public static Vector2 Clamp(Vector2 value, Vector2 min, Vector2 max) => new (
+		Math.Clamp(value.x, min.x, max.x),
+		Math.Clamp(value.y, min.y, max.y)
+	);
+	
 	public Vector2Int ToVector2Int(RoundingMode operation = RoundingMode.Round) => operation switch
 	{
 		RoundingMode.Round   => new Vector2Int((int)MathF.Round(x), (int)MathF.Round(y)),

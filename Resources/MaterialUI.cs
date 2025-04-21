@@ -1,6 +1,4 @@
-using XYEngine.Resources;
-
-namespace XYEngine.UI;
+namespace XYEngine.Resources;
 
 public class MaterialUI(Shader shader = null, params (string, object)[] properties) : Material(shader ?? Shader.GetDefaultUI(), properties)
 {

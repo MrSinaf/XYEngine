@@ -54,7 +54,7 @@ public class Label : UIElement
 		this.text = text;
 	}
 	
-	public Label(string text, string prefab = null) : this()
+	public Label(string text = "", string prefab = null) : this()
 	{
 		this.text = text;
 		UIPrefab.Apply(this, prefab);

@@ -64,7 +64,6 @@ public class ObjectBehaviour
 	
 	public ObjectBehaviour() => Scene.AddObject(this);
 	
-	protected internal virtual void Start() { }
 	protected internal virtual void Update() { }
 	protected virtual void Destroyed() { }
 	

@@ -26,7 +26,7 @@ public abstract class Scene
 	
 	internal void InternalUpdate()
 	{
-		UIEvent.Update();
+		camera.Update();
 		Update();
 		for (var i = 0; i < objects.Count; i++)
 		{
@@ -57,6 +57,7 @@ public abstract class Scene
 	{
 		Destroy();
 		canvas.Destroy();
+		camera.Destroy();
 		
 		foreach (var obj in objects)
 			obj.Destroy();

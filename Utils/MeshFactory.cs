@@ -4,16 +4,24 @@ namespace XYEngine.Utils;
 
 public static class MeshFactory
 {
-	public static Mesh CreateQuad(Vector2 size, Region? uvs = null)
+	public static Mesh CreateQuad(Vector2 size, Region? uvs = null, bool centered = true)
 	{
 		var mesh = new Mesh();
-		var x = size.x * 0.5F;
-		var y = size.y * 0.5F;
-		var meshUv = uvs ?? new Region(Vector2.zero, Vector2.one);
 		
-		mesh.vertices = [new Vector2(-x, -y), new Vector2(x, -y), new Vector2(x, y), new Vector2(-x, y)];
-		mesh.indices = [0, 3, 1, 3, 2, 1];
+		if (centered)
+		{
+			var x = size.x * 0.5F;
+			var y = size.y * 0.5F;
+			mesh.vertices = [new Vector2(-x, -y), new Vector2(x, -y), new Vector2(x, y), new Vector2(-x, y)];
+		}
+		else
+		{
+			mesh.vertices = [Vector2.zero, new Vector2(size.x, 0), size, new Vector2(0, size.y)];
+		}
+		
+		var meshUv = uvs ?? new Region(Vector2.zero, Vector2.one);
 		mesh.uvs = [meshUv.position00, new Vector2(meshUv.position11.x, meshUv.position00.y), meshUv.position11, new Vector2(meshUv.position00.x, meshUv.position11.y)];
+		mesh.indices = [0, 3, 1, 3, 2, 1];
 		
 		return mesh;
 	}
