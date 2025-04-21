@@ -8,9 +8,10 @@ public class GProgram : IDisposable
 {
 	private static uint? currentHandle;
 	
+	private readonly Dictionary<string, int> uniformLocations = [];
 	public readonly uint handle = gl.CreateProgram();
-	public bool isDisposed { get; protected set; }
 	
+	public bool isDisposed { get; protected set; }
 	private uint vertexHandle;
 	private uint fragmentHandle;
 	
@@ -162,13 +163,14 @@ public class GProgram : IDisposable
 	
 	private bool GetUniformLocation(string name, out int location)
 	{
-		location = gl.GetUniformLocation(handle, name);
-		var isValid = location != -1;
-		// if (!isValid)
-		// 	XY.InternalLog("Shader", $"Uniform '{name}' not found in shader program.", TypeLog.Warning);
+		if (uniformLocations.TryGetValue(name, out location))
+			return location != -1;
 		
-		return isValid;
+		location = gl.GetUniformLocation(handle, name);
+		uniformLocations[name] = location;
+		return  location != -1;
 	}
+
 	
 	public void Dispose()
 	{
