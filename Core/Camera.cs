@@ -21,15 +21,14 @@ public class Camera
 	
 	public Vector2 mousePosition { get; private set; }
 	public Vector2 resolution { get; private set; }
-	
-	private Vector2 halfResolution;
+	public Vector2 halfResolution { get; private set; }
 	
 	public Camera(List<ObjectBehaviour> objects)
 	{
 		this.objects = objects;
-		Graphics.resolutionChanged += OnResolutionChanged;
+		Graphics.resolutionChanged += UpdateResolutionCamera;
 		
-		OnResolutionChanged();
+		UpdateResolutionCamera();
 	}
 	
 	internal void Render()
@@ -50,18 +49,19 @@ public class Camera
 		}
 	}
 	
-	internal void Update() => mousePosition = position + (Input.mousePosition - halfResolution) / zoom;
-	
-	private void OnResolutionChanged()
+	internal void Update()
 	{
-		UpdateResolutionCamera();
-		halfResolution = Graphics.resolution.ToVector2() * 0.5F;
+		mousePosition = position + Input.mousePosition / zoom - halfResolution;
 	}
 	
 	private void UpdateResolutionCamera()
 	{
 		resolution = Graphics.resolution / zoom;
+		halfResolution = resolution * 0.5F;
 	}
 	
-	internal void Destroy() => Graphics.resolutionChanged -= OnResolutionChanged;
+	internal void Destroy()
+	{
+		Graphics.resolutionChanged -= UpdateResolutionCamera;
+	}
 }
