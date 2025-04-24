@@ -64,11 +64,6 @@ public class Layout : UIElement
 			ReArrange();
 	}
 	
-	protected override void OnEndDraw()
-	{
-		isDirty = false;
-	}
-	
 	private void OnElementChanged(UIElement element)
 	{
 		isDirty = true;
@@ -87,6 +82,12 @@ public class Layout : UIElement
 			array[i].SimuleDraw();
 			SetChild(array[i], i);
 		}
+		
+		BuildMatrix();
+		foreach (var child in array)
+			child.BuildMatrix();
+		
+		isDirty = false;
 	}
 	
 	private void SetChild(UIElement element, int index)

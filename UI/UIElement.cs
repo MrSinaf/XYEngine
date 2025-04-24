@@ -367,18 +367,6 @@ public class UIElement
 		UIEvent.UnRegisterAllEvents(this);
 	}
 	
-	public void UpdateMatrix()
-	{
-		if (GetType() == typeof(RootElement))
-			return;
-		
-		if (parent == null)
-			throw new InvalidOperationException("To update the matrix, a parent is required.");
-		
-		parent.UpdateMatrix();
-		BuildMatrix();
-	}
-	
 	public void SimuleDraw()
 	{
 		OnBeginDraw();
@@ -419,7 +407,7 @@ public class UIElement
 	protected virtual void OnDestroy() { }
 	protected virtual void OnRemoved() { }
 	
-	private void BuildMatrix()
+	public void BuildMatrix()
 	{
 		var scaledPivotSize = (pivot * scaledSize).ToVector2Int();
 		var calculatePosition = Vector2Int.zero;
