@@ -42,13 +42,11 @@ public static class AssetManager
 		}
 	}
 	
-	public static T LoadAsset<T>(string path, IAssetConfig config = null, bool acceptGet = false) where T : IAsset, new()
+	public static T LoadAsset<T>(string path, IAssetConfig config = null) where T : IAsset, new()
 	{
 		if (cache.TryGetValue(path, out var value))
 		{
-			if (!acceptGet)
-				XY.InternalLog(LOG_NAME, $"You are trying to load `{path}`, but it is already present in the cache!", TypeLog.Warning);
-			
+			XY.InternalLog(LOG_NAME, $"You are trying to load `{path}`, but it is already present in the cache!", TypeLog.Warning);
 			return (T)value.asset;
 		}
 		
@@ -64,6 +62,36 @@ public static class AssetManager
 		
 		return asset;
 	}
+	
+	public static async Task<T> LoadAssetAsync<T>(string path, IAssetConfig config = null) where T : IAsset, new()
+	{
+		if (cache.TryGetValue(path, out var cachedValue))
+		{
+			XY.InternalLog(LOG_NAME, $"You are trying to load `{path}`, but it is already present in the cache!", TypeLog.Warning);
+			return (T)cachedValue.asset;
+		}
+		
+		var fullPath = Path.Combine("assets", path);
+		if (!File.Exists(fullPath))
+			throw new FileNotFoundException($"Asset not found at path '{path}'");
+		
+		try
+		{
+			await using var stream = new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, true);
+			
+			var asset = new T();
+			asset.Load(new AssetProperty(stream, Path.GetExtension(fullPath).ToLower(), config));
+			
+			cache[path] = new AssetReference(asset, config);
+			return asset;
+		}
+		catch (Exception ex)
+		{
+			XY.InternalLog(LOG_NAME, $"Failed to load asset asynchronously at path '{path}'. Exception: {ex.Message}", TypeLog.Error);
+			throw;
+		}
+	}
+	
 	
 	public static bool TryGetAsset<T>(string path, out T asset) where T : IAsset
 	{

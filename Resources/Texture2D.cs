@@ -16,20 +16,22 @@ public class Texture2D : Texture, IAsset
 	public Vector2 texel { get; private set; }
 	
 	private Color[] pixels;
-	private bool isInGPU;
 	
 	public void Apply()
 	{
 		if (pixels == null)
 			throw new NullReferenceException();
 		
-		if (!isInGPU)
+		GCommandQueue.Enqueue(() =>
 		{
-			gTexture.SetImage2D(width, height, pixels);
-			isInGPU = true;
-		}
-		else
-			gTexture.SetSubImage2D(0, 0, width, height, pixels);
+			if (gTexture == null)
+			{
+				gTexture = new GTexture();
+				gTexture.SetImage2D(width, height, pixels);
+			}
+			else
+				gTexture.SetSubImage2D(0, 0, width, height, pixels);
+		});
 	}
 	
 	public Texture2D() { }
@@ -54,18 +56,17 @@ public class Texture2D : Texture, IAsset
 		texel = Vector2.one / size;
 		pixels = Color.ConvertBytesToColors(image.Data);
 		
+		Apply();
+		
 		var config = property.config as Texture2DConfig ?? defaultConfig;
 		SetWrap(config.wrap);
 		SetFilter((TextureMin)config.filter, config.filter);
-		isInGPU = false;
-		
-		Apply();
 	}
 	
 	public void UnLoad()
 	{
 		pixels = null;
-		gTexture.Dispose();
+		GCommandQueue.Enqueue(() => gTexture.Dispose());
 	}
 }
 

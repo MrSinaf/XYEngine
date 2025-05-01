@@ -30,10 +30,13 @@ public class Mesh : IDisposable
 			isValid = false;
 		}
 		
-		vertexBuffer = GBuffer.Create(BufferType.VertexBuffer, MakeVertexDataBlob(layout));
-		indexBuffer = GBuffer.Create(BufferType.ElementsBuffer, indices);
-		vertexArray = new GVertexArray(layout, vertexBuffer, indexBuffer);
-		isValid = true;
+		GCommandQueue.Enqueue(() =>
+		{
+			vertexBuffer = GBuffer.Create(BufferType.VertexBuffer, MakeVertexDataBlob(layout));
+			indexBuffer = GBuffer.Create(BufferType.ElementsBuffer, indices);
+			vertexArray = new GVertexArray(layout, vertexBuffer, indexBuffer);
+			isValid = true;
+		});
 		
 		return this;
 	}

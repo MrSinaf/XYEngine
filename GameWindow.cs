@@ -9,6 +9,7 @@ using Silk.NET.Windowing;
 using StbImageSharp;
 using XYEngine.Debugs;
 using XYEngine.Inputs;
+using XYEngine.Rendering;
 using XYEngine.Scenes;
 using XYEngine.UI;
 using XYEngine.Utils;
@@ -144,6 +145,8 @@ public class GameWindow
 	
 	private static void Render(double delta)
 	{
+		GCommandQueue.ExecuteAll();
+
 		SceneManager.Render();
 		XYDebug.Render();
 	}

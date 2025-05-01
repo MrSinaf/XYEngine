@@ -51,9 +51,12 @@ public class Shader : IAsset
 			}
 		}
 		
-		gProgram?.Dispose();
-		gProgram = new GProgram();
-		gProgram.Compile(OPENGL_VERSION + "\n" + vertexShader, OPENGL_VERSION + "\n" + fragmentShader);
+		GCommandQueue.Enqueue(() =>
+		{
+			gProgram?.Dispose();
+			gProgram = new GProgram();
+			gProgram.Compile(OPENGL_VERSION + "\n" + vertexShader, OPENGL_VERSION + "\n" + fragmentShader);
+		});
 		
 		if (!property.onHotReload)
 			shaders.Add(this);
