@@ -1,34 +1,19 @@
-﻿#type VERTEX
-out vec2 frag_uv;
-
-void main()
-{
-    gl_Position = vec4(vec3(position, 1) * model * projection, 1);
-    frag_uv = uv;
-}
-
-#type FRAGMENT
-in vec2 frag_uv;
-
-out vec4 out_color;
+﻿uniform vec2 resolution;
+uniform float time;
 
 uniform sampler2D mainTex;
-uniform float time;
-uniform vec2 resolution;
+uniform mat3 projection;
+uniform mat3 view;
+uniform mat3 model;
 
 uniform vec2 repeat;
 
-void main()
-{
-    float frag_time = time / 10;
+void mainVertex(in vec2 position, in vec2 uv, in vec4 color, out vec2 fragCoord) {
+    gl_Position = vec4(vec3(position, 1) * model * projection, 1);
+    fragCoord = uv;
+}
 
-    // Coins arrondies :
-    //    float radius = 15.0;
-    //    vec2 centered_uv = frag_uv * resolution - resolution * 0.5;
-    //    vec2 corner_check = abs(centered_uv) - (resolution * 0.5 - radius);
-    //    float distance = length(max(corner_check, 0.0)) + min(max(corner_check.x, corner_check.y), 0.0);
-    //    float alpha = smoothstep(radius - 1, radius + 1, distance);
-    //    out_color = mix(texture(mainTex, vec2(frag_uv.x * repeat.x + frag_time, frag_uv.y * repeat.y - frag_time)), vec4(0.0), alpha);
-
-    out_color = texture(mainTex, vec2(frag_uv.x * repeat.x + frag_time, frag_uv.y * repeat.y - frag_time));
+void mainFragment(in vec2 fragCoord, out vec4 fragColor) {
+    float fragTime = time / 10;
+    fragColor = texture(mainTex, vec2(fragCoord.x * repeat.x + fragTime, fragCoord.y * repeat.y - fragTime));
 }

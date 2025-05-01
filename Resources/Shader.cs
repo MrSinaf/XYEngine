@@ -1,29 +1,19 @@
-﻿using XYEngine.Rendering;
+﻿using System.Text;
+using System.Text.RegularExpressions;
+using XYEngine.Rendering;
 
 namespace XYEngine.Resources;
 
 public class Shader : IAsset
 {
-	private const string BASE_SHADER =
-		"""
-		#version 330 core
-		layout (location = 0) in vec2 position;
-		layout (location = 1) in vec2 uv;
-		layout (location = 2) in vec4 color;
-		
-		uniform mat3 projection;
-		uniform mat3 view;
-		uniform mat3 model;
-		
-		
-		""";
-	
-	public static readonly ShaderConfig internalConfig = new (_ => { }, (_, _, _) => { });
+	public static readonly ShaderConfig internalConfig = new (delegate { }, delegate { });
 	public static ShaderConfig defaultConfig = internalConfig;
 	
 	internal static readonly List<Shader> shaders = [];
 	
-	public readonly GProgram gProgram = new ();
+	private const string OPENGL_VERSION = "#version 330 core";
+	
+	public GProgram gProgram;
 	public ShaderConfig config { get; private set; }
 	
 	void IAsset.Load(AssetProperty property)
@@ -34,29 +24,115 @@ public class Shader : IAsset
 		config = property.config as ShaderConfig ?? defaultConfig;
 		
 		using var reader = new StreamReader(property.stream);
-		var sections = reader.ReadToEnd().Split("#type ", StringSplitOptions.RemoveEmptyEntries);
+		var shadxy = reader.ReadToEnd();
 		
-		string vertexShader = null;
-		string fragmentShader = null;
+		var preamble = ExtractPreamble(shadxy);
+		var functions = ExtractAllFunctions(shadxy);
 		
-		foreach (var section in sections)
+		var vertexShader = $"\n{preamble}\n";
+		var fragmentShader = $"\n{preamble}\n";
+		
+		foreach (var (name, (method, param)) in functions)
 		{
-			if (section.StartsWith("vertex", StringComparison.CurrentCultureIgnoreCase))
-				vertexShader = BASE_SHADER + section[section.IndexOf('\n')..].Trim();
-			
-			if (section.StartsWith("fragment", StringComparison.CurrentCultureIgnoreCase))
-				fragmentShader = "#version 330 core\n" + section[section.IndexOf('\n')..].Trim();
+			if (name == "mainVertex")
+			{
+				vertexShader = param + vertexShader;
+				vertexShader += method.Replace(name, "main") + "\n";
+			}
+			else if (name == "mainFragment")
+			{
+				fragmentShader = param + fragmentShader;
+				fragmentShader += method.Replace(name, "main") + "\n";
+			}
+			else
+			{
+				vertexShader += method + "\n";
+				fragmentShader += method + "\n";
+			}
 		}
 		
-		if (vertexShader == null || fragmentShader == null)
-			throw new Exception("Impossible de continuer");
-		
-		if (property.onHotReload)
-			gProgram.Decompile();
-		gProgram.Compile(vertexShader, fragmentShader);
+		gProgram?.Dispose();
+		gProgram = new GProgram();
+		gProgram.Compile(OPENGL_VERSION + "\n" + vertexShader, OPENGL_VERSION + "\n" + fragmentShader);
 		
 		if (!property.onHotReload)
 			shaders.Add(this);
+	}
+	
+	private static string ExtractPreamble(string shaderContent)
+	{
+		var sb = new StringBuilder();
+		
+		var versionMatch = Regex.Match(shaderContent, "#version.*");
+		if (versionMatch.Success)
+			sb.AppendLine(versionMatch.Value);
+		
+		var layoutMatches = Regex.Matches(shaderContent, @"layout\s*\(.*?\).*?;");
+		foreach (Match match in layoutMatches)
+			sb.AppendLine(match.Value);
+		
+		if (layoutMatches.Count > 0)
+			sb.AppendLine();
+		
+		var uniformMatches = Regex.Matches(shaderContent, @"uniform\s+.*?;");
+		foreach (Match match in uniformMatches)
+			sb.AppendLine(match.Value);
+		
+		return sb.ToString();
+	}
+	
+	private static Dictionary<string, (string, string)> ExtractAllFunctions(string shaderContent)
+	{
+		var functions = new Dictionary<string, (string, string)>();
+		var matches = Regex.Matches(shaderContent, @"(?:void|vec2|vec3|vec4|float|int)\s+(\w+)\s*\(([^\)]*)\)\s*{");
+		
+		foreach (Match match in matches)
+		{
+			var startIndex = match.Index;
+			var functionName = match.Groups[1].Value;
+			var parametersText = match.Groups[2].Value.Trim();
+			
+			var count = 1;
+			var endIndex = startIndex + match.Length;
+			for (; endIndex < shaderContent.Length; endIndex++)
+			{
+				if (shaderContent[endIndex] == '{')
+					count++;
+				else if (shaderContent[endIndex] == '}')
+				{
+					count--;
+					if (count == 0)
+						break;
+				}
+			}
+			
+			if (endIndex > startIndex)
+			{
+				if (!string.IsNullOrWhiteSpace(parametersText))
+				{
+					var parameters = parametersText.Split(',');
+					var formattedParamsList = new List<string>();
+					var cleanParamsList = new List<string>();
+					
+					foreach (var param in parameters)
+					{
+						var trimmedParam = param.Trim();
+						if (trimmedParam.StartsWith("in ") || trimmedParam.StartsWith("out "))
+							formattedParamsList.Add(trimmedParam + ";");
+						else
+							cleanParamsList.Add(trimmedParam);
+					}
+					
+					functions[functionName] = (shaderContent.Substring(startIndex, endIndex - startIndex + 1)
+															.Replace($"{functionName}({parametersText})", $"{functionName}({string.Join(", ", cleanParamsList)})"),
+											   string.Join("\n", formattedParamsList));
+				}
+				else
+					functions[functionName] = (shaderContent.Substring(startIndex, endIndex - startIndex + 1), "");
+			}
+		}
+		
+		return functions;
 	}
 	
 	void IAsset.UnLoad()
