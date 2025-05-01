@@ -146,7 +146,7 @@ public class GameWindow
 	private static void Render(double delta)
 	{
 		GCommandQueue.ExecuteAll();
-
+		
 		SceneManager.Render();
 		XYDebug.Render();
 	}

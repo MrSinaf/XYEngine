@@ -168,9 +168,8 @@ public class GProgram : IDisposable
 		
 		location = gl.GetUniformLocation(handle, name);
 		uniformLocations[name] = location;
-		return  location != -1;
+		return location != -1;
 	}
-
 	
 	public void Dispose()
 	{
