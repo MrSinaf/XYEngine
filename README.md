@@ -31,8 +31,8 @@ moteur vise à simplifier l'intégration de logiques procédurales tout en perme
 
 - [x] **ImGui intégré** : Éditeur ImGui intégré facilitant les actions de débogage en temps réel dans l'application.
 - [x] **Widgets UI avancés** : Ajout de widgets complexes tels que liste, scrollview et saisie de texte pour créer des interfaces riches.
-- [ ] **Shaders intégrés** : Shader de base intégré, facilitant la création et l'intégration rapide de nouveaux shaders.
-- [ ] **Chargement multi-thread** : Chargement des ressources géré sur plusieurs threads pour améliorer les performances.
+- [x] **Shaders intégrés** : Shader de base intégré, facilitant la création et l'intégration rapide de nouveaux shaders.
+- [x] **Chargement multi-thread** : Chargement des ressources géré sur plusieurs threads pour améliorer les performances.
 - [ ] **Déchargement automatique** : Libération automatique des ressources inutilisées comme les textures ou les meshes.
 
 ## 🖱️〉Compatibilités
