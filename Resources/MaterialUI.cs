@@ -22,7 +22,7 @@ public class MaterialUI(Shader shader = null, params (string, object)[] properti
 		return this;
 	}
 	
-	public MaterialUI SetPadding(Region padding, float? scale)
+	public MaterialUI SetPadding(Region padding, float? scale = null)
 	{
 		SetProperty(PADDING, padding);
 		if (scale.HasValue)
