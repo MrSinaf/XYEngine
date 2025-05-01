@@ -15,7 +15,7 @@ public static class XY
 	public const VersionState VERSION_STATE = VersionState.Dev;
 	public static string version => Assembly.GetAssembly(typeof(XY)).GetName().Version.ToString();
 	
-	public static void LaunchGame<T>(string name, Action splashScreenAction = null) where T : Scene, new()
+	public static void LaunchGame<T>(string name, params Func<Task>[] loadingTasks) where T : Scene, new()
 	{
 		if (gameIsRunning)
 		{
@@ -31,7 +31,7 @@ public static class XY
 		InternalLog($"  XYEngine v{version} - {VERSION_STATE}", TypeLog.Info);
 		
 		SplashScreen.startScene = typeof(T);
-		SplashScreen.action = splashScreenAction;
+		SplashScreen.loadingTasks = loadingTasks;
 		gameIsRunning = true;
 		
 		_ = new GameWindow(name);
