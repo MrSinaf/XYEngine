@@ -5,8 +5,8 @@ namespace XYEngine.Resources;
 public class Mesh : IDisposable
 {
 	public GVertexArray vertexArray { get; private set; }
-	private GBuffer vertexBuffer;
-	private GBuffer indexBuffer;
+	private GBuffer<byte> vertexBuffer;
+	private GBuffer<uint> indexBuffer;
 	
 	public uint[] indices;
 	public Vector2[] vertices;
@@ -32,8 +32,8 @@ public class Mesh : IDisposable
 		
 		GCommandQueue.Enqueue(() =>
 		{
-			vertexBuffer = GBuffer.Create(BufferType.VertexBuffer, MakeVertexDataBlob(layout));
-			indexBuffer = GBuffer.Create(BufferType.ElementsBuffer, indices);
+			vertexBuffer = GBuffer<byte>.Create(BufferType.VertexBuffer, MakeVertexDataBlob(layout));
+			indexBuffer = GBuffer<uint>.Create(BufferType.ElementsBuffer, indices);
 			vertexArray = new GVertexArray(layout, vertexBuffer, indexBuffer);
 			isValid = true;
 		});

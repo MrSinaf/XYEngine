@@ -3,7 +3,7 @@ using static XYEngine.Graphics;
 
 namespace XYEngine.Rendering;
 
-public class GBuffer : IDisposable
+public class GBuffer<T> : IDisposable where T : unmanaged
 {
 	private static uint? currentBound;
 	
@@ -15,11 +15,11 @@ public class GBuffer : IDisposable
 	
 	public bool isDisposed { get; protected set; }
 	
-	public static unsafe GBuffer Create<T>(BufferType type, T[] data, bool dynamic = false) where T : unmanaged
+	public static unsafe GBuffer<T> Create(BufferType type, T[] data, bool dynamic = false)
 	{
 		fixed (void* ptr = data)
 		{
-			return new GBuffer(type, (uint)(data.Length * sizeof(T)), ptr, dynamic);
+			return new GBuffer<T>(type, (uint)(data.Length * sizeof(T)), ptr, dynamic);
 		}
 	}
 	
@@ -33,7 +33,7 @@ public class GBuffer : IDisposable
 		gl.BufferData(target, sizeInBytes, data, BufferUsageARB.DynamicDraw);
 	}
 	
-	public unsafe void Set<T>(uint offsetInBytes, T[] data) where T : unmanaged
+	public unsafe void Set(uint offsetInBytes, T[] data)
 	{
 		Bind();
 		fixed (void* ptr = data)
