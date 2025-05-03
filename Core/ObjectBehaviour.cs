@@ -11,6 +11,7 @@ public class ObjectBehaviour
 	
 	public Mesh mesh;
 	public Material material;
+	public int drawOrder;
 	
 	private bool dirtyMatrix;
 	

@@ -39,11 +39,12 @@ public class Camera
 		foreach (var shader in Shader.shaders)
 			shader.gProgram.SetUniform("projection", matrix);
 		
-		foreach (var obj in objects)
+		var objectsToDraw = objects.Where(obj => obj.isActif && obj.canDraw)
+								   .OrderBy(obj => obj.drawOrder)
+								   .ToList();
+		
+		foreach (var obj in objectsToDraw)
 		{
-			if (!obj.isActif || !obj.canDraw)
-				continue;
-			
 			obj.BeginDraw();
 			Graphics.DrawMesh(obj.mesh, obj.material);
 		}
