@@ -7,6 +7,8 @@ public struct Region(Vector2 position00, Vector2 position11)
 	
 	public Region(Vector2 position) : this(position, position) { }
 	public Region(float x, float y, float z, float w) : this(new Vector2(x, y), new Vector2(z, w)) { }
+	public Region(float xz, float yw) : this(new Vector2(xz, yw), new Vector2(xz, yw)) { }
+	public Region(float value) : this(new Vector2(value), new Vector2(value)) { }
 	
 	public Region Intersection(Region other)
 	{
