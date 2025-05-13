@@ -5,6 +5,7 @@ namespace XYEngine;
 
 public class Camera
 {
+	private static readonly Comparison<ObjectBehaviour> drawOrderComparison = (a, b) => a.drawOrder.CompareTo(b.drawOrder);
 	private readonly List<ObjectBehaviour> objects;
 	
 	public Vector2 position;
@@ -39,12 +40,13 @@ public class Camera
 		foreach (var shader in Shader.shaders)
 			shader.gProgram.SetUniform("projection", matrix);
 		
-		var objectsToDraw = objects.Where(obj => obj.isActif && obj.canDraw)
-								   .OrderBy(obj => obj.drawOrder)
-								   .ToList();
-		
-		foreach (var obj in objectsToDraw)
+		objects.Sort(drawOrderComparison);
+		foreach (var obj in objects)
 		{
+			if (!obj.isActif || !obj.canDraw)
+			
+				continue;
+			
 			obj.BeginDraw();
 			Graphics.DrawMesh(obj.mesh, obj.material);
 		}
