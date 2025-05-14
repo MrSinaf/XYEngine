@@ -1,5 +1,4 @@
 ﻿using Silk.NET.OpenGL;
-using StbImageSharp;
 using XYEngine.Resources;
 using Shader = XYEngine.Resources.Shader;
 
@@ -14,7 +13,6 @@ public static class Graphics
 	
 	internal static void Init(GL gl)
 	{
-		StbImage.stbi_set_flip_vertically_on_load(1);
 		Graphics.gl = gl;
 		
 		gl.Enable(EnableCap.Blend);

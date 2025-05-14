@@ -9,8 +9,8 @@ namespace XYEngine.Resources;
 
 public unsafe class Font : IAsset
 {
-	public const string CHARS = "☒ 0123456789abcdefghijklmnopqrstuvwxyzáàäâãåçéèëêíìïîóòöôõúùüûñABCDEFGHIJKLMNOPQRSTUVWXYZÁÀÄÂÃÅÇÉÈËÊÍÌÏÎÓÒÖÔÕÚÙÜÛÑ\"@#&%.:,;_-^*+=\\/|()[]{}<>" +
-								"~`'°€¥$¢£?!¿¡";
+	public const string CHARS = "☒0123456789abcdefghijklmnopqrstuvwxyzáàäâãåçéèëêíìïîóòöôõúùüûñABCDEFGHIJKLMNOPQRSTUVWXYZÁÀÄÂÃÅÇÉÈËÊÍÌÏÎÓÒÖÔÕÚÙÜÛÑ\"@#&%.:,;_-^*+=\\/|()[]{}<>" +
+								"~`'°€¥$¢£?!¿¡ ";
 	
 	private static FT_LibraryRec_* lib;
 	private static bool libIsInit;
@@ -71,9 +71,22 @@ public unsafe class Font : IAsset
 		bitmap.SetWrap(TextureWrap.ClampToEdge);
 		
 		FT_Set_Pixel_Sizes(face, 0, size);
-		
 		var slot = face->glyph;
-		var pen = new Vector2Int(0, 8);
+		
+		var maxHeight = 0;
+		foreach (var c in CHARS)
+		{
+			FT_Load_Char(face, c, FT_LOAD.FT_LOAD_RENDER);
+			
+			var ftBitmap = slot->bitmap;
+			var height = (int)ftBitmap.rows;
+			var totalHeight = height / 4 + slot->bitmap_top;
+			
+			maxHeight = Math.Max(maxHeight, totalHeight);
+		}
+		maxHeight += 2;
+		
+		var pen = new Vector2Int(0, maxHeight);
 		var glyphs = new Dictionary<char, Glyph>();
 		
 		foreach (var c in CHARS)
@@ -88,27 +101,25 @@ public unsafe class Font : IAsset
 			if (pen.x + slot->bitmap_left + width > bitmapSize)
 			{
 				pen.x = 0;
-				pen.y += 30;
+				pen.y += maxHeight;
 			}
+			
+			var glyphX = pen.x + slot->bitmap_left;
+			var glyphY = pen.y - slot->bitmap_top;
 			
 			for (var y = 0; y < height; y++)
 			for (var x = 0; x < width; x++)
 			{
 				var alpha = buffer[y * ftBitmap.pitch + x];
-				bitmap[pen.x + slot->bitmap_left + x, pen.y + slot->bitmap_top - y - 1] = new Color(255, 255, 255, alpha);
+				bitmap[glyphX + x, glyphY + y] = new Color(255, 255, 255, alpha);
 			}
 			
-			// Position réelle où le glyphe est dessiné
-			var glyphX = pen.x + slot->bitmap_left;
-			var glyphY = pen.y + slot->bitmap_top - height; // Position Y ajustée pour l'inversion
+			var uv = new Region(new Vector2(glyphX * bitmap.texel.x, glyphY * bitmap.texel.y), new Vector2((glyphX + width) * bitmap.texel.x, (glyphY + height) * bitmap.texel.y));
+			var atlasRect = new RectInt(new Vector2Int(glyphX, glyphY), new Vector2Int(width, height));
 			
-			var glyphPos = new Vector2(glyphX, glyphY);
-			var position = new RectInt(new Vector2Int((int)(slot->advance.x >> 6), (int)(slot->advance.y >> 6)), new Vector2Int(width, height));
-			var uv = new Region(glyphPos * bitmap.texel, (glyphPos + position.size) * bitmap.texel);
-			glyphs.Add(c, new Glyph(position, uv, new Vector2Int(slot->bitmap_left, slot->bitmap_top), (int)(slot->advance.x >> 6)));
-			pen += new Vector2Int((int)(slot->advance.x >> 6), (int)(slot->advance.y >> 6));
+			glyphs.Add(c, new Glyph(atlasRect, uv, new Vector2Int(slot->bitmap_left, slot->bitmap_top), (int)(slot->advance.x >> 6)));
+			pen.x += (int)(slot->advance.x >> 6);
 		}
-		
 		bitmap.Apply();
 		
 		var fontSize = new FontBitmap(size, (int)face->size->metrics.height >> 6, -(int)face->size->metrics.descender >> 6, bitmap, new ReadOnlyDictionary<char, Glyph>(glyphs));
@@ -116,6 +127,7 @@ public unsafe class Font : IAsset
 		
 		return fontSize;
 	}
+	
 	
 	public uint[] GetBitmapSizes() => fontBitmaps.Keys.ToArray();
 	

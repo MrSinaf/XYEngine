@@ -12,12 +12,11 @@ public static class MeshFactory
 		{
 			var x = size.x * 0.5F;
 			var y = size.y * 0.5F;
-			mesh.vertices = [new Vector2(-x, -y), new Vector2(x, -y), new Vector2(x, y), new Vector2(-x, y)];
+			mesh.vertices = [new Vector2(-x, y), new Vector2(x, y), new Vector2(x, -y), new Vector2(-x, -y)];
 		}
 		else
-		{
-			mesh.vertices = [Vector2.zero, new Vector2(size.x, 0), size, new Vector2(0, size.y)];
-		}
+			mesh.vertices = [new Vector2(0, size.y), size, new Vector2(size.x, 0), Vector2.zero];
+
 		
 		var meshUv = uvs ?? new Region(Vector2.zero, Vector2.one);
 		mesh.uvs = [meshUv.position00, new Vector2(meshUv.position11.x, meshUv.position00.y), meshUv.position11, new Vector2(meshUv.position00.x, meshUv.position11.y)];
@@ -40,10 +39,11 @@ public static class MeshFactory
 			var pos11 = quad.vertices.position + quad.vertices.size;
 			var iV = i * 4;
 			
-			mesh.vertices[iV] = pos00;
-			mesh.vertices[iV + 1] = new Vector2(pos11.x, pos00.y);
-			mesh.vertices[iV + 2] = pos11;
-			mesh.vertices[iV + 3] = new Vector2(pos00.x, pos11.y);
+			mesh.vertices[iV] = new Vector2(pos00.x, pos11.y);
+			;
+			mesh.vertices[iV + 1] = pos11;
+			mesh.vertices[iV + 2] = new Vector2(pos11.x, pos00.y);
+			mesh.vertices[iV + 3] = pos00;
 			
 			mesh.uvs[iV] = quad.uvs.position00;
 			mesh.uvs[iV + 1] = new Vector2(quad.uvs.position11.x, quad.uvs.position00.y);

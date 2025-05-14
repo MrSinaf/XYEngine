@@ -1,6 +1,7 @@
 ﻿using System.Numerics;
 using System.Reflection;
 using ImGuiNET;
+using XYEngine.Resources;
 using XYEngine.Utils;
 
 namespace XYEngine.Debugs;
@@ -146,6 +147,23 @@ internal static class DebugAssets
 				
 				ImGui.AlignTextToFramePadding();
 				ImGui.Text($"{property.Name} {property.GetValue(selectedAsset.asset)}");
+			}
+			
+			
+			if (selectedAsset.asset is Texture2D texture)
+			{
+				var ratio = (float)texture.height / texture.width;
+				ImGui.Image((IntPtr)texture.gTexture.handle, new System.Numerics.Vector2(300, 300 * ratio));
+			}
+			else if (selectedAsset.asset is Font font)
+			{
+				var bitmapSizes = font.GetBitmapSizes();
+				foreach (var bitmapSiz in bitmapSizes)
+				{
+					var textue = font.GetBitmap(bitmapSiz).bitmap;
+					var ratio = (float)textue.height / textue.width;
+					ImGui.Image((IntPtr)textue.gTexture.handle, new System.Numerics.Vector2(300, 300 * ratio));
+				}
 			}
 		}
 	}
