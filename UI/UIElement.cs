@@ -17,6 +17,7 @@ public class UIElement
 	public bool isDestroyed { get; private set; }
 	public Vector2Int realPosition { get; private set; }
 	public Matrix3X3 inversedMatrix { get; private set; }
+	public RegionInt clipArea { get; protected set; }
 	
 	public bool overflowHidden = true;
 	
@@ -224,8 +225,6 @@ public class UIElement
 			return field;
 		}
 	} = Matrix3X3.Identity();
-	
-	public virtual RegionInt clipArea { get; set; }
 	
 	public virtual bool visible { get; set; } = true;
 	
@@ -441,7 +440,6 @@ public class UIElement
 		}
 		
 		calculatePosition += position;
-		
 		
 		realPosition = calculatePosition += parent.realPosition + parent.padding.position00 - scaledPivotSize +
 											((parent.scaledSize - parent.padding.position00 - parent.padding.position11) * anchorMin).ToVector2Int();

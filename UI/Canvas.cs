@@ -31,8 +31,6 @@ public class Canvas
 	private void ApplyResolution()
 	{
 		matrix = Matrix3X3.CreateOrthographic(Graphics.resolution.x, Graphics.resolution.y, false);
-		
 		root.UpdateSize(new RegionInt(Vector2Int.zero, Graphics.resolution), Graphics.resolution);
-		root.UnmarkMatrixIsDirty();
 	}
 }
