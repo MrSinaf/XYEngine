@@ -192,6 +192,14 @@ public class TextInput : UIElement
 						cursorPosition = value.Length;
 				});
 				break;
+			default:
+				if (cursorPosition != selectionEnd)
+				{
+					var min = int.Min(cursorPosition, selectionEnd);
+					value = value.Remove(min, int.Max(cursorPosition, selectionEnd) - min);
+					cursorPosition = min;
+				}
+				break;
 		}
 		
 		selectionEnd = cursorPosition;
