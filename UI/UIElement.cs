@@ -342,14 +342,14 @@ public class UIElement
 				   : localPoint.IsInsideBounds(mesh.bounds.position, -mesh.bounds.position);
 	}
 	
-	public void MarkMatrixIsDirty()
+	public virtual void MarkMatrixIsDirty()
 	{
 		dirtyMatrix = true;
 		foreach (var child in children)
 			child.MarkMatrixIsDirty();
 	}
 	
-	public void UnmarkMatrixIsDirty()
+	public virtual void UnmarkMatrixIsDirty()
 	{
 		if (!dirtyMatrix)
 			return;
