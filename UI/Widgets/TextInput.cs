@@ -275,11 +275,13 @@ public class TextInput : UIElement
 		e.caret.size = new Vector2Int(2, 0);
 		e.caret.anchorMin = Vector2.zero;
 		e.caret.anchorMax = Vector2.top;
+		e.caret.overflowHidden = false;
 		
 		e.selection.mesh = MeshFactory.CreateQuad(Vector2.one).Apply();
 		e.selection.material = new MaterialUI().SetTexture(Primitif.whitePixel);
 		e.selection.anchorMin = Vector2.zero;
 		e.selection.anchorMax = Vector2.top;
 		e.selection.opacity = 0.2F;
+		e.selection.overflowHidden = false;
 	}
 }

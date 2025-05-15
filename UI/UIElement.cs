@@ -11,12 +11,14 @@ public class UIElement
 	public UIElement[] childrenArray => children.ToArray();
 	
 	public bool isActif => active && parentActive && !isDestroyed;
-	public bool canDraw => isObservable && material != null && mesh is { isValid: true };
+	public bool canDraw => (!overflowHidden || isObservable) && material != null && mesh is { isValid: true };
 	public bool isObservable => clipArea.position11 != Vector2Int.zero;
 	
 	public bool isDestroyed { get; private set; }
 	public Vector2Int realPosition { get; private set; }
 	public Matrix3X3 inversedMatrix { get; private set; }
+	
+	public bool overflowHidden = true;
 	
 	protected bool scaleWithoutSize;
 	
@@ -418,10 +420,7 @@ public class UIElement
 							 (parent.scaledSize - parent.padding.position00 - parent.padding.position11);
 			
 			if (anchorSize.x == 0)
-			{
 				anchorSize.x = size.x;
-				calculatePosition.x += position.x;
-			}
 			else
 			{
 				anchorSize.x -= margin.position00.x + margin.position11.x;
@@ -430,10 +429,7 @@ public class UIElement
 			}
 			
 			if (anchorSize.y == 0)
-			{
 				anchorSize.y = size.y;
-				calculatePosition.y += position.y;
-			}
 			else
 			{
 				anchorSize.y -= margin.position00.y + margin.position11.y;
@@ -443,8 +439,8 @@ public class UIElement
 			
 			size = anchorSize.ToVector2Int();
 		}
-		else
-			calculatePosition += position;
+		
+		calculatePosition += position;
 		
 		
 		realPosition = calculatePosition += parent.realPosition + parent.padding.position00 - scaledPivotSize +
