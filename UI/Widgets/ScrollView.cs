@@ -78,8 +78,11 @@ public class ScrollView : UIElement
 			return;
 		
 		isDirty = false;
-		scrollBarVertical.contentLength = content.size.y;
-		scrollBarHorizontal.contentLength = content.size.x;
+		if (content != null)
+		{
+			scrollBarVertical.contentLength = content.size.y;
+			scrollBarHorizontal.contentLength = content.size.x;
+		}
 	}
 	
 	protected override void OnRemoved()
