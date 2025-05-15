@@ -28,6 +28,8 @@ public class Mesh : IDisposable
 		
 		if (isValid)
 		{
+			vertexBuffer.Dispose();
+			indexBuffer.Dispose();
 			vertexArray.Dispose();
 			isValid = false;
 		}
