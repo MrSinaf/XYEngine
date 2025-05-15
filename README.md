@@ -22,18 +22,11 @@ moteur vise à simplifier l'intégration de logiques procédurales tout en perme
 ## 💻〉Fonctionnalités
 
 - **Code-Only Development** : Tout le développement se fait par code, sans aucun éditeur. Il suffit d'écrire directement la logique de jeu en C#.
-- **Ressources et assets** : Chargement dynamique des ressources via le code avec un système de mise en cache intégré.
-- **UI Responsive** : Prise en charge de la création d'une interface utilisateur pouvant s'adapter à différentes résolutions d'écrans.
+- **Ressources et assets** : Chargement dynamique et multithreading des ressources via le code avec un système de mise en cache intégré.
+- **UI Responsive** : Prise en charge de la création d'une interface riche utilisateur pouvant s'adapter à différentes résolutions d'écrans.
 - **Rendu 2D optimisé** : XYEngine étant un moteur exclusivement 2D, il bénéficie d'une optimisation accrue sur le rendu.
-- **Programmation moderne** : Utilisation de .NET9 et des fonctionnalités modernes, permettant d'avoir du code efficace et épuré.
-
-### 🔧〉Fonctionnalités en développement (v0.2)
-
-- [x] **ImGui intégré** : Éditeur ImGui intégré facilitant les actions de débogage en temps réel dans l'application.
-- [x] **Widgets UI avancés** : Ajout de widgets complexes tels que liste, scrollview et saisie de texte pour créer des interfaces riches.
-- [x] **Shaders intégrés** : Shader de base intégré, facilitant la création et l'intégration rapide de nouveaux shaders.
-- [x] **Chargement multi-thread** : Chargement des ressources géré sur plusieurs threads pour améliorer les performances.
-- [ ] **Déchargement automatique** : Libération automatique des ressources inutilisées comme les textures ou les meshes.
+- **Programmation moderne** : Utilisation de .NET9 et des fonctionnalités modernes, permettant d'avoir un code efficace et épuré.
+- **ImGui intégré** : Éditeur ImGui intégré facilitant les actions de débogage en temps réel dans l'application.
 
 ## 🖱️〉Compatibilités
 

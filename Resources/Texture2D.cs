@@ -47,6 +47,8 @@ public class Texture2D : Texture, IAsset
 		Apply();
 	}
 	
+	public Region GetUVRegion(RectInt target) => new (target.position * texel, (target.position + target.size) * texel);
+	
 	public void Load(AssetProperty property)
 	{
 		var image = ImageResult.FromStream(property.stream, ColorComponents.RedGreenBlueAlpha);
