@@ -97,9 +97,7 @@ internal class SplashScreen : Scene
 	
 	private static void LoadDefaultAssets()
 	{
-		AssetManager.LoadEmbeddedAsset<Texture2D>("textures.xy.png", Texture2D.internalConfig);
 		AssetManager.LoadEmbeddedAsset<Shader>("shaders.default.shadxy", Shader.internalConfig);
-		AssetManager.LoadEmbeddedAsset<Texture2D>("textures.white_pixel.png", Texture2D.internalConfig);
 		
 		var font = AssetManager.LoadEmbeddedAsset<Font>("fonts.jetbrains.ttf");
 		font.GenerateBitmap(16, 256);
