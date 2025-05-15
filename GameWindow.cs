@@ -16,7 +16,7 @@ using XYEngine.Utils;
 
 namespace XYEngine;
 
-public enum DisplayMode { Windowed, NoBorder, FullScren }
+public enum DisplayMode { Windowed, NoBorder, FullScreen }
 
 public class GameWindow
 {
@@ -68,7 +68,7 @@ public class GameWindow
 				window.WindowState = WindowState.Maximized;
 				window.Size = window.Monitor.VideoMode.Resolution!.Value;
 				break;
-			case DisplayMode.FullScren:
+			case DisplayMode.FullScreen:
 				window.WindowState = WindowState.Fullscreen;
 				break;
 			default:

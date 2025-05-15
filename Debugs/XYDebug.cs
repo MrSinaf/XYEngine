@@ -95,7 +95,7 @@ public static class XYDebug
 					if (ImGui.MenuItem("No Border"))
 						GameWindow.SetDisplayMode(DisplayMode.NoBorder);
 					if (ImGui.MenuItem("Fullscreen"))
-						GameWindow.SetDisplayMode(DisplayMode.FullScren);
+						GameWindow.SetDisplayMode(DisplayMode.FullScreen);
 					
 					ImGui.EndMenu();
 				}
