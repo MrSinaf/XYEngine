@@ -48,7 +48,7 @@ public class GVertexArray : IDisposable
 		if (handle == 0)
 			throw new Exception("Failed to generate Vertex Array Object (VAO)");
 		
-		gl.DeleteVertexArray(handle);
+		GCommandQueue.Enqueue(() => gl.DeleteVertexArray(handle));
 		isDisposed = true;
 		
 		GC.SuppressFinalize(this);

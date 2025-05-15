@@ -5,8 +5,6 @@ namespace XYEngine.Resources;
 public class Mesh : IDisposable
 {
 	public GVertexArray vertexArray { get; private set; }
-	private GBuffer<byte> vertexBuffer;
-	private GBuffer<uint> indexBuffer;
 	
 	public uint[] indices;
 	public Vector2[] vertices;
@@ -18,6 +16,10 @@ public class Mesh : IDisposable
 	public bool isValid;
 	public bool hasColors => colors?.Length > 0;
 	public bool hasUvs => uvs?.Length > 0;
+	
+	private GBuffer<byte> vertexBuffer;
+	private GBuffer<uint> indexBuffer;
+	private bool isDisposed;
 	
 	public Mesh Apply()
 	{
@@ -120,10 +122,16 @@ public class Mesh : IDisposable
 	
 	public void Dispose()
 	{
+		if (isDisposed)
+			return;
+		
 		vertexBuffer?.Dispose();
 		indexBuffer?.Dispose();
 		vertexArray?.Dispose();
+		isDisposed = true;
 		
 		GC.SuppressFinalize(this);
 	}
+	
+	~Mesh() => Dispose();
 }

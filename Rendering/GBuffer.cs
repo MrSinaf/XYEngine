@@ -59,7 +59,9 @@ public class GBuffer<T> : IDisposable where T : unmanaged
 		if (currentBound == handle)
 			currentBound = null;
 		
-		gl.DeleteBuffer(handle);
+		GCommandQueue.Enqueue(() => gl.DeleteBuffer(handle));
 		isDisposed = true;
+		
+		GC.SuppressFinalize(this);
 	}
 }
