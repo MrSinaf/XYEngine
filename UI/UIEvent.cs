@@ -30,14 +30,16 @@ public static class UIEvent
 		ApplyPendingLists();
 		
 		var mousePosition = Input.mousePosition.ToVector2Int();
+		var newStates = new HashSet<Type>();
+		
 		foreach (var (element, events) in elements)
 		{
 			if (!element.isActif)
 				continue;
 			
 			var previousStates = previousStatesElement[element];
-			var newStates = new HashSet<Type>();
 			var isMouseOver = element.ContainsPoint(mousePosition);
+			newStates.Clear();
 			
 			if (isMouseOver)
 				newStates.Add(Type.MouseOver);
