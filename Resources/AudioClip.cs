@@ -1,12 +1,14 @@
-﻿using NAudio.Wave;
+﻿using ImGuiNET;
+using NAudio.Wave;
 using NVorbis;
 using Silk.NET.OpenAL;
+using XYEngine.Debugs;
 using XYEngine.Utils;
 using static XYEngine.Audio;
 
 namespace XYEngine.Resources;
 
-public class AudioClip : IAsset
+public class AudioClip : IAsset, IImGuiRenderable
 {
 	private uint handle;
 	private uint source;
@@ -168,4 +170,32 @@ public class AudioClip : IAsset
 		al.DeleteBuffer(handle);
 		al.DeleteSource(source);
 	}
+	
+	public void OnImGuiRender()
+	{
+		al.GetSourceProperty(source, GetSourceInteger.SourceState, out var state);
+		var isPlaying = state == (int)SourceState.Playing;
+		var position = currentTime;
+		
+		ImGui.Text($@"{TimeSpan.FromSeconds(position):mm\:ss} / {TimeSpan.FromSeconds(duration):mm\:ss}");
+		
+		if (ImGui.SliderFloat("##timeline", ref position, 0, duration, "%.2f s"))
+			currentTime = position;
+		
+		if (ImGui.Button(isPlaying ? "Pause" : "Play"))
+		{
+			if (isPlaying)
+				Pause();
+			else
+				Play();
+		}
+		ImGui.SameLine();
+		
+		if (ImGui.Button("Stop"))
+		{
+			Stop();
+			currentTime = 0;
+		}
+	}
+
 }

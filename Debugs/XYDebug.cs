@@ -6,6 +6,7 @@ using Silk.NET.Input;
 using Silk.NET.OpenGL;
 using Silk.NET.OpenGL.Extensions.ImGui;
 using Silk.NET.Windowing;
+using XYEngine.Debugs.Windows;
 using XYEngine.Inputs;
 using Key = XYEngine.Inputs.Key;
 
@@ -17,6 +18,7 @@ public static class XYDebug
 {
 	public static DebugState state { get; internal set; } = DebugState.Full;
 	
+	private static IDebugWindow[] debugWindows;
 	private static ImGuiController imGuiController;
 	private static bool showMainMenuBar;
 	
@@ -25,6 +27,7 @@ public static class XYDebug
 		if (state == DebugState.None)
 			return;
 		
+		debugWindows = [new DebugAssets(), new DebugCanvas()];
 		imGuiController = new ImGuiController(gl, view, input);
 		var assembly = Assembly.GetExecutingAssembly();
 		using var stream = assembly.GetManifestResourceStream("XYEngine.assets.imgui_style.json");
@@ -46,12 +49,16 @@ public static class XYDebug
 		
 		style.WindowRounding = 8;
 		style.FrameRounding = 3;
+		style.WindowBorderSize = 0;
+		style.ChildBorderSize = 0;
+		style.PopupBorderSize = 0;
 		style.WindowTitleAlign = new System.Numerics.Vector2(0.5F, 0.5F);
 		style.WindowMenuButtonPosition = ImGuiDir.None;
 		
-		
 		ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.DockingEnable;
-		DebugHotReload.Init();
+		
+		foreach (var debugWindow in debugWindows)
+			debugWindow.Create();
 	}
 	
 	internal static void Update()
@@ -60,10 +67,12 @@ public static class XYDebug
 			return;
 		
 		imGuiController.Update(Time.delta);
-		DebugHotReload.Update();
 		
 		if (Input.IsKeyHeldDown(Key.ControlLeft) && Input.IsKeyPressed(Key.F1))
+		{
 			showMainMenuBar = !showMainMenuBar;
+			SceneManager.current.canvas.root.padding = showMainMenuBar ? new RegionInt(0, 0, 0, -18) : new RegionInt();
+		}
 	}
 	
 	internal static void Render()
@@ -80,6 +89,8 @@ public static class XYDebug
 				{
 					SceneManager.current.InternalDestroy();
 					SceneManager.current.InternalStart();
+					SceneManager.current.canvas.Destroy();
+					SceneManager.current.InternalBuildUI();
 				}
 				
 				if (ImGui.MenuItem("Rebuild UI"))
@@ -106,33 +117,94 @@ public static class XYDebug
 				ImGui.EndMenu();
 			}
 			
-			if (ImGui.BeginMenu("Tools"))
+			if (ImGui.BeginMenu("Windows"))
 			{
-				if (ImGui.MenuItem("Assets"))
-					DebugAssets.showAssets = true;
-				
-				if (ImGui.MenuItem("Canvas"))
-					DebugCanvas.showCanvas = true;
-				
-				ImGui.Separator();
-				
-				
-				if (state == DebugState.Full)
-				{
-					var hotReloadActif = DebugHotReload.actif;
-					if (ImGui.MenuItem("HotReload (TEST)", string.Empty, ref hotReloadActif))
-						DebugHotReload.actif = !DebugHotReload.actif;
-				}
-				
+				foreach (var debugWindow in debugWindows)
+					if (ImGui.MenuItem(debugWindow.name))
+						debugWindow.visible = true;
 				ImGui.EndMenu();
 			}
 			
 			ImGui.EndMainMenuBar();
 		}
 		
-		DebugCanvas.Render();
-		DebugAssets.Render();
+		ImGui.PushStyleVar(ImGuiStyleVar.WindowBorderSize, 2);
+		foreach (var window in debugWindows)
+			if (window.visible)
+			{
+				var visible = window.visible;
+				
+				ImGui.Begin(window.name, ref visible);
+				window.Render();
+				ImGui.End();
+				
+				window.visible = visible;
+				window.notFirstDraw = true;
+			}
+		ImGui.PopStyleVar();
+		
 		imGuiController.Render();
+	}
+	
+	public static void ShowProperty(string text, object property)
+	{
+		ImGui.Text($"{text} :");
+		ImGui.SameLine();
+		ImGui.TextColored(new Vector4(0.5f, 0.8f, 0.3f, 1.0f), property.ToString());
+	}
+	
+	public static bool IsCompatibleInput(Type type) => type == typeof(string) || type == typeof(bool) || type == typeof(Vector2) || type == typeof(Vector2Int)
+													   || type == typeof(RegionInt) || type == typeof(float) || type == typeof(int);
+	
+	public static object GetInput(string id, object property)
+	{
+		var type = property.GetType();
+		if (type == typeof(string))
+		{
+			var value = ((string)property).Replace("\n", @"\n");
+			if (ImGui.InputText($"##{id}", ref value, 9999))
+				property = value.Replace(@"\n", "\n");
+		}
+		else if (type == typeof(bool))
+		{
+			var value = (bool)property;
+			if (ImGui.Checkbox($"##{id}", ref value))
+				property = value;
+		}
+		else if (type == typeof(Vector2))
+		{
+			var value = ToSystem((Vector2)property);
+			if (ImGui.DragFloat2($"##{id}", ref value, 0.1F))
+				property = ToXY(value);
+		}
+		else if (type == typeof(Vector2Int))
+		{
+			var vector = (Vector2Int)property;
+			int[] values = [vector.x, vector.y];
+			if (ImGui.DragInt2($"##{id}", ref values[0], 1))
+				property = new Vector2Int(values[0], values[1]);
+		}
+		else if (type == typeof(RegionInt))
+		{
+			var region = (RegionInt)property;
+			int[] values = [region.position00.x, region.position00.y, region.position11.x, region.position11.y];
+			if (ImGui.DragInt4($"##{id}", ref values[0], 1))
+				property = new RegionInt(values[0], values[1], values[2], values[3]);
+		}
+		else if (type == typeof(float))
+		{
+			var value = (float)property;
+			if (ImGui.DragFloat($"##{id}", ref value, 0.05F))
+				property = value;
+		}
+		else if (type == typeof(int))
+		{
+			var value = (int)property;
+			if (ImGui.DragInt($"##{id}", ref value))
+				property = value;
+		}
+		
+		return property;
 	}
 	
 	public static System.Numerics.Vector2 ToSystem(Vector2 value) => new (value.x, value.y);

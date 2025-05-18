@@ -1,9 +1,11 @@
-﻿using StbImageSharp;
+﻿using ImGuiNET;
+using StbImageSharp;
+using XYEngine.Debugs;
 using XYEngine.Rendering;
 
 namespace XYEngine.Resources;
 
-public class Texture2D : Texture, IAsset
+public class Texture2D : Texture, IAsset, IImGuiRenderable
 {
 	public static readonly Texture2DConfig internalConfig = new (TextureWrap.Repeat, TextureMag.Nearest);
 	public static Texture2DConfig defaultConfig = internalConfig;
@@ -69,6 +71,16 @@ public class Texture2D : Texture, IAsset
 	{
 		pixels = null;
 		GCommandQueue.Enqueue(() => gTexture.Dispose());
+	}
+	
+	public void OnImGuiRender()
+	{
+		XYDebug.ShowProperty("Dimensions", $"{size.x}x{size.y}");
+		ImGui.Spacing();
+		
+		var ratio = (float)height / width;
+		var availableSpace = ImGui.GetContentRegionAvail().X;
+		ImGui.Image((IntPtr)gTexture.handle, new System.Numerics.Vector2(availableSpace, (int)(availableSpace * ratio)));
 	}
 }
 
