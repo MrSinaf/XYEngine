@@ -411,12 +411,13 @@ public class UIElement
 	public void BuildMatrix()
 	{
 		var scaledPivotSize = (pivot * scaledSize).ToVector2Int();
+		var parentBoundsPadding = parent.scaledSize - (parent.padding.position00 - parent.padding.position11);
 		var calculatePosition = Vector2Int.zero;
 		
+		var boundsPosition = Vector2.zero;
 		if (anchorMin != anchorMax)
 		{
-			var anchorSize = new Vector2(MathF.Abs(anchorMin.x - anchorMax.x), MathF.Abs(anchorMin.y - anchorMax.y)) *
-							 (parent.scaledSize - parent.padding.position00 - parent.padding.position11);
+			var anchorSize = new Vector2(MathF.Abs(anchorMin.x - anchorMax.x), MathF.Abs(anchorMin.y - anchorMax.y)) * parentBoundsPadding;
 			
 			if (anchorSize.x == 0)
 				anchorSize.x = size.x;
@@ -436,22 +437,35 @@ public class UIElement
 				scaledPivotSize.y = 0;
 			}
 			
+			boundsPosition = anchorSize * pivot;
 			size = anchorSize.ToVector2Int();
 		}
 		
 		calculatePosition += position;
 		
-		realPosition = calculatePosition += parent.realPosition + parent.padding.position00 - scaledPivotSize +
-											((parent.scaledSize - parent.padding.position00 - parent.padding.position11) * anchorMin).ToVector2Int();
+		realPosition = calculatePosition += parent.realPosition + parent.padding.position00 - scaledPivotSize + (parentBoundsPadding * anchorMin).ToVector2Int();
+		// TODO : Corriger le clipArea pour qu'il puisse prendre en compte la rotation de l'élément (ceci rend ContainsPoint inutilisable) :
 		clipArea = new RegionInt(realPosition, realPosition + scaledSize.ToVector2Int()).Intersection(parent.clipArea);
 		
 		if (mesh is { isValid: true } && !scaleWithoutSize)
-			calculatePosition -= (scaledSize * mesh.bounds.position).ToVector2Int();
+		{
+			var boundsScaled = scaledSize * mesh.bounds.position;
+			calculatePosition -= boundsScaled.ToVector2Int();
+			boundsPosition += boundsScaled;
+		}
+		boundsPosition += scaledPivotSize;
 		
 		var matrixScale = scaleWithoutSize ? scale : scaledSize;
-		inversedMatrix = (matrix = Matrix3X3.CreateScale(matrixScale) *
-								   Matrix3X3.CreateRotation(float.DegreesToRadians(rotation)) *
-								   Matrix3X3.CreateTranslation(calculatePosition + offset)).Inverse();
+		matrix = Matrix3X3.CreateScale(matrixScale);
+		if (rotation != 0)
+		{
+			matrix *= Matrix3X3.CreateTranslation(-boundsPosition) *
+					  Matrix3X3.CreateRotation(float.DegreesToRadians(rotation)) *
+					  Matrix3X3.CreateTranslation(boundsPosition);
+		}
+		matrix *= Matrix3X3.CreateTranslation(calculatePosition + offset);
+		inversedMatrix = matrix.Inverse();
+		
 		elementChanged(this);
 	}
 }
