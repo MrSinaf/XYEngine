@@ -5,8 +5,8 @@ namespace XYEngine;
 
 public class Camera
 {
-	private static readonly Comparison<ObjectBehaviour> drawOrderComparison = (a, b) => a.drawOrder.CompareTo(b.drawOrder);
-	private readonly List<ObjectBehaviour> objects;
+	private static readonly Comparison<XYObject> drawOrderComparison = (a, b) => a.drawOrder.CompareTo(b.drawOrder);
+	private readonly List<XYObject> objects;
 	
 	public Vector2 position;
 	
@@ -24,7 +24,7 @@ public class Camera
 	public Vector2 resolution { get; private set; }
 	public Vector2 halfResolution { get; private set; }
 	
-	public Camera(List<ObjectBehaviour> objects)
+	public Camera(List<XYObject> objects)
 	{
 		this.objects = objects;
 		Graphics.resolutionChanged += UpdateResolutionCamera;

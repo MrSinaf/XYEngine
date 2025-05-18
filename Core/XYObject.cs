@@ -2,7 +2,7 @@
 
 namespace XYEngine;
 
-public class ObjectBehaviour
+public class XYObject
 {
 	public bool enable = true;
 	public bool isDestroyed { get; private set; }
@@ -63,7 +63,7 @@ public class ObjectBehaviour
 	
 	#endregion
 	
-	public ObjectBehaviour() => Scene.AddObject(this);
+	public XYObject() => Scene.AddObject(this);
 	
 	protected internal virtual void Update() { }
 	protected virtual void Destroyed() { }
