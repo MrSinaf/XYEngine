@@ -29,6 +29,15 @@ public partial class Grid<T> : IEnumerable<T>
 				gridArray[x, y, 0] = func(x, y);
 	}
 	
+	public Grid(int width, int height)
+	{
+		this.width = width;
+		this.height = height;
+		depth = 1;
+		
+		gridArray = new T[width, height, depth];
+	}
+	
 	public void GetXY(Vector2 value, out int x, out int y)
 	{
 		x = (int)Math.Floor(value.x);

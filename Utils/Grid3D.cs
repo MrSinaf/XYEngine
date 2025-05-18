@@ -24,6 +24,15 @@ public partial class Grid<T>
 				gridArray[x, y, z] = func(x, y, z);
 	}
 	
+	public Grid(int width, int height, int depth)
+	{
+		this.width = width;
+		this.height = height;
+		this.depth = depth;
+		
+		gridArray = new T[width, height, depth];
+	}
+	
 	public void SetObject(int x, int y, int z, T obj)
 	{
 		try
@@ -32,7 +41,7 @@ public partial class Grid<T>
 		}
 		catch (IndexOutOfRangeException)
 		{
-			throw new Exception($"La position: ({x}:{y}:{z}) se trouve en dehors de la grille.");
+			throw new Exception($"The position: ({x}:{y}:{z}) is out of the grid's boundaries.");
 		}
 	}
 	
@@ -67,7 +76,7 @@ public partial class Grid<T>
 		}
 		catch (IndexOutOfRangeException)
 		{
-			throw new Exception($"La position: ({x}:{y}:{z}) se trouve en dehors de la grille.");
+			throw new Exception($"The position: ({x}:{y}:{z}) is out of the grid's boundaries.");
 		}
 	}
 	

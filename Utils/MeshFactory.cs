@@ -40,7 +40,6 @@ public static class MeshFactory
 			var iV = i * 4;
 			
 			mesh.vertices[iV] = new Vector2(pos00.x, pos11.y);
-			;
 			mesh.vertices[iV + 1] = pos11;
 			mesh.vertices[iV + 2] = new Vector2(pos11.x, pos00.y);
 			mesh.vertices[iV + 3] = pos00;
@@ -58,6 +57,17 @@ public static class MeshFactory
 			mesh.indices[iI + 4] = iV + 2;
 			mesh.indices[iI + 5] = iV + 1;
 		}
+		
+		return mesh;
+	}
+	
+	public static Mesh ChangeQuadUV(Mesh mesh, Region uvs, int index = 0)
+	{
+		var iV = index * 4;
+		mesh.uvs[iV] = uvs.position00;
+		mesh.uvs[iV + 1] = new Vector2(uvs.position11.x, uvs.position00.y);
+		mesh.uvs[iV + 2] = uvs.position11;
+		mesh.uvs[iV + 3] = new Vector2(uvs.position00.x, uvs.position11.y);
 		
 		return mesh;
 	}
