@@ -56,6 +56,7 @@ public class DebugCanvas : IDebugWindow
 		XYDebug.ShowProperty("parent", cElement.parent.GetType());
 		XYDebug.ShowProperty("mouseIsOver", cElement.ContainsPoint(Input.mousePosition));
 		XYDebug.ShowProperty("nChild", cElement.nChild);
+		XYDebug.ShowProperty("isObservable", cElement.isObservable);
 		ImGui.Spacing();
 		ImGui.Spacing();
 		ImGui.Spacing();
@@ -77,10 +78,15 @@ public class DebugCanvas : IDebugWindow
 			}
 		}
 		
+		var drawList = ImGui.GetForegroundDrawList();
+		
+		var clipMin = new Vector2(cElement.clipArea.position00.x, GameWindow.size.y - cElement.clipArea.position11.y);
+		var clipMax = new Vector2(cElement.clipArea.position11.x, GameWindow.size.y - cElement.clipArea.position00.y);
+		drawList.AddRect(XYDebug.ToSystem(clipMin), XYDebug.ToSystem(clipMax), ImGui.GetColorU32(new Vector4(0, 1, 1, 0.2F)), 0, ImDrawFlags.None, 1);
+		
 		var itemPos = new Vector2(cElement.realPosition.x, GameWindow.size.y - cElement.realPosition.y - cElement.scaledSize.y);
 		var itemSize = cElement.scaledSize;
 		var pivotPoint = new Vector2(itemPos.x + cElement.pivot.x * itemSize.x, itemPos.y + -cElement.pivot.y * itemSize.y + itemSize.y);
-		var drawList = ImGui.GetForegroundDrawList();
 		
 		if (cElement.rotation == 0)
 		{

@@ -444,8 +444,7 @@ public class UIElement
 		calculatePosition += position;
 		
 		realPosition = calculatePosition += parent.realPosition + parent.padding.position00 - scaledPivotSize + (parentBoundsPadding * anchorMin).ToVector2Int();
-		// TODO : Corriger le clipArea pour qu'il puisse prendre en compte la rotation de l'élément (ceci rend ContainsPoint inutilisable) :
-		clipArea = new RegionInt(realPosition, realPosition + scaledSize.ToVector2Int()).Intersection(parent.clipArea);
+		CalculeClipArea();
 		
 		if (mesh is { isValid: true } && !scaleWithoutSize)
 		{
@@ -467,5 +466,35 @@ public class UIElement
 		inversedMatrix = matrix.Inverse();
 		
 		elementChanged(this);
+	}
+	
+	private void CalculeClipArea()
+	{
+		var topLeft = new Vector2(realPosition.x, realPosition.y);
+		var topRight = new Vector2(realPosition.x + scaledSize.x, realPosition.y);
+		var bottomLeft = new Vector2(realPosition.x, realPosition.y + scaledSize.y);
+		var bottomRight = new Vector2(realPosition.x + scaledSize.x, realPosition.y + scaledSize.y);
+		
+		var pivotPosition = realPosition + (scaledSize * pivot).ToVector2Int();
+		topLeft = RotatePointAroundPivot(topLeft, pivotPosition, float.DegreesToRadians(rotation));
+		topRight = RotatePointAroundPivot(topRight, pivotPosition, float.DegreesToRadians(rotation));
+		bottomLeft = RotatePointAroundPivot(bottomLeft, pivotPosition, float.DegreesToRadians(rotation));
+		bottomRight = RotatePointAroundPivot(bottomRight, pivotPosition, float.DegreesToRadians(rotation));
+		
+		var rotatedClipArea = new RegionInt(new Vector2Int((int)MathF.Floor(MathF.Min(topLeft.x, MathF.Min(topRight.x, MathF.Min(bottomLeft.x, bottomRight.x)))),
+														   (int)MathF.Floor(MathF.Min(topLeft.y, MathF.Min(topRight.y, MathF.Min(bottomLeft.y, bottomRight.y))))),
+											new Vector2Int((int)MathF.Ceiling(MathF.Max(topLeft.x, MathF.Max(topRight.x, MathF.Max(bottomLeft.x, bottomRight.x)))),
+														   (int)MathF.Ceiling(MathF.Max(topLeft.y, MathF.Max(topRight.y, MathF.Max(bottomLeft.y, bottomRight.y))))));
+		clipArea = rotatedClipArea.Intersection(parent.clipArea);
+		
+		Vector2 RotatePointAroundPivot(Vector2 point, Vector2 pivot, float radians)
+		{
+			var cos = MathF.Cos(radians);
+			var sin = MathF.Sin(radians);
+			var translatedPoint = point - pivot;
+			var rotatedX = translatedPoint.x * cos - translatedPoint.y * sin;
+			var rotatedY = translatedPoint.x * sin + translatedPoint.y * cos;
+			return new Vector2(rotatedX, rotatedY) + pivot;
+		}
 	}
 }
