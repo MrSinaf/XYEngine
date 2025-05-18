@@ -78,6 +78,8 @@ public class GameWindow
 		size = new Vector2Int(window.Size.X, window.Size.Y);
 	}
 	
+	public static void SetBackgroundColor(Color color) => Graphics.SetBackgroundColor(color);
+	
 	private unsafe void Load()
 	{
 		ImageResult result;

@@ -19,7 +19,7 @@ public static class Graphics
 		gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
 	}
 	
-	public static void SetBackgroundColor(Color color) => gl.ClearColor(color.r * Color.FACTOR, color.g * Color.FACTOR, color.b * Color.FACTOR, 1);
+	internal static void SetBackgroundColor(Color color) => gl.ClearColor(color.r * Color.FACTOR, color.g * Color.FACTOR, color.b * Color.FACTOR, 1);
 	
 	internal static void BeginDraw()
 	{
