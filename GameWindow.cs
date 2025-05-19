@@ -59,14 +59,18 @@ public class GameWindow
 			case DisplayMode.Windowed:
 				window.WindowBorder = WindowBorder.Resizable;
 				window.WindowState = WindowState.Normal;
+				window.IsVisible = false;
 				window.Size = new Vector2D<int>(1200, 600);
 				window.Center();
+				window.IsVisible = true;
 				window.Focus();
 				break;
 			case DisplayMode.NoBorder:
 				window.WindowBorder = WindowBorder.Hidden;
 				window.WindowState = WindowState.Maximized;
+				window.IsVisible = false;
 				window.Size = window.Monitor.VideoMode.Resolution!.Value;
+				window.IsVisible = true;
 				break;
 			case DisplayMode.FullScreen:
 				window.WindowState = WindowState.Fullscreen;
