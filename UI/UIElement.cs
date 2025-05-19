@@ -19,7 +19,7 @@ public class UIElement
 	public Matrix3X3 inversedMatrix { get; private set; }
 	public RegionInt clipArea { get; protected set; }
 	
-	public bool overflowHidden = true;
+	public bool overflowHidden { get; set; } = true;
 	
 	protected bool scaleWithoutSize;
 	
@@ -332,8 +332,9 @@ public class UIElement
 		if (mesh is not { isValid: true })
 			return false;
 		
-		if (point.IsOutsideBounds(clipArea.position00, clipArea.position11))
-			return false;
+		if (overflowHidden)
+			if (point.IsOutsideBounds(clipArea.position00, clipArea.position11))
+				return false;
 		
 		var localPoint = inversedMatrix.TransformPoint(point - mesh.bounds.position);
 		return scaleWithoutSize
@@ -362,6 +363,10 @@ public class UIElement
 		material = null;
 		mesh = null;
 		isDestroyed = true;
+		
+		if (parent is { isDestroyed: false })
+			parent.RemoveChild(this);
+		
 		foreach (var child in children)
 			child.Destroy();
 		
