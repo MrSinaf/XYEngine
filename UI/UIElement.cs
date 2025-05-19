@@ -411,7 +411,7 @@ public class UIElement
 	public void BuildMatrix()
 	{
 		var scaledPivotSize = (pivot * scaledSize).ToVector2Int();
-		var parentBoundsPadding = parent.scaledSize - (parent.padding.position00 - parent.padding.position11);
+		var parentBoundsPadding = parent.scaledSize - (parent.padding.position00 + parent.padding.position11);
 		var calculatePosition = Vector2Int.zero;
 		
 		var boundsPosition = Vector2.zero;
