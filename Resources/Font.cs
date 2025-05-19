@@ -1,13 +1,15 @@
 using System.Collections.ObjectModel;
 using System.Runtime.InteropServices;
 using FreeTypeSharp;
+using ImGuiNET;
+using XYEngine.Debugs;
 using XYEngine.Rendering;
 using XYEngine.Utils;
 using static FreeTypeSharp.FT;
 
 namespace XYEngine.Resources;
 
-public unsafe class Font : IAsset
+public unsafe class Font : IAsset, IImGuiRenderable
 {
 	public const string CHARS = "☒0123456789abcdefghijklmnopqrstuvwxyzáàäâãåçéèëêíìïîóòöôõúùüûñABCDEFGHIJKLMNOPQRSTUVWXYZÁÀÄÂÃÅÇÉÈËÊÍÌÏÎÓÒÖÔÕÚÙÜÛÑ\"@#&%.:,;_-^*+=\\/|()[]{}<>" +
 								"~`'°€¥$¢£?!¿¡ ";
@@ -132,6 +134,17 @@ public unsafe class Font : IAsset
 	public uint[] GetBitmapSizes() => fontBitmaps.Keys.ToArray();
 	
 	public bool ContainsBitmapSize(uint size) => fontBitmaps.ContainsKey(size);
+	
+	public void OnImGuiRender()
+	{
+		foreach (var fontBitmap in fontBitmaps)
+		{
+			XYDebug.ShowProperty("size", fontBitmap.Key);
+			
+			var bitmap = fontBitmap.Value.bitmap;
+			ImGui.Image((IntPtr)bitmap.gTexture.handle, new System.Numerics.Vector2(bitmap.width, bitmap.height));
+		}
+	}
 }
 
 public struct Glyph(RectInt atlasRect, Region uv, Vector2Int bearing, int advanceX)

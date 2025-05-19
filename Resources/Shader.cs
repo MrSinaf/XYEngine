@@ -1,10 +1,13 @@
-﻿using System.Text;
+﻿using System.Numerics;
+using System.Text;
 using System.Text.RegularExpressions;
+using ImGuiNET;
+using XYEngine.Debugs;
 using XYEngine.Rendering;
 
 namespace XYEngine.Resources;
 
-public class Shader : IAsset
+public class Shader : IAsset, IImGuiRenderable
 {
 	public static readonly ShaderConfig internalConfig = new (delegate { }, delegate { });
 	public static ShaderConfig defaultConfig = internalConfig;
@@ -142,6 +145,21 @@ public class Shader : IAsset
 	{
 		gProgram.Dispose();
 		shaders.Remove(this);
+	}
+	
+	public void OnImGuiRender()
+	{
+		XYDebug.ShowProperty("onCreateAction", config.onCreate != null);
+		XYDebug.ShowProperty("onPropertyAddAction", config.onPropertyAdd != null);
+		ImGui.Spacing();
+		ImGui.Spacing();
+		ImGui.Spacing();
+		
+		var uniformNames = gProgram.GetUniformNames();
+		foreach (var uniform in uniformNames)
+		{
+			ImGui.TextColored(new Vector4(0.1F, 0.5F, 0.1F, 1), uniform);
+		}
 	}
 	
 	public static Shader GetDefault() => AssetManager.GetEmbeddedAsset<Shader>("shaders.default.shadxy");
