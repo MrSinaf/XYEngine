@@ -8,7 +8,7 @@ uniform mat3 model;
 
 uniform vec2 mainTexSize;
 uniform vec2 modelSize;
-uniform vec4 uvRegion;
+uniform vec4 uvRect;
 uniform vec4 padding;
 uniform float paddingScale;
 uniform vec4 tint;
@@ -16,12 +16,12 @@ uniform float alpha;
 
 vec4 ninePatch()
 {
-    vec2 regionSize = uvRegion.zw - uvRegion.xy;
-    vec2 texSizeScaled = mainTexSize * regionSize * paddingScale;
+    vec4 uvRegion = vec4(uvRect.xy, uvRect.xy + uvRect.zw);
+    vec2 texSizeScaled = mainTexSize * uvRect.zw * paddingScale;
     vec4 uvMarginScaled = padding * paddingScale;
 
-    vec2 regionMarginMin = uvRegion.xy + (uvMarginScaled.xy / texSizeScaled) * regionSize;
-    vec2 regionMarginMax = uvRegion.zw - (uvMarginScaled.zw / texSizeScaled) * regionSize;
+    vec2 regionMarginMin = uvRegion.xy + (uvMarginScaled.xy / texSizeScaled) * uvRect.zw;
+    vec2 regionMarginMax = uvRegion.zw - (uvMarginScaled.zw / texSizeScaled) * uvRect.zw;
 
     vec2 modelMarginMin = uvMarginScaled.xy;
     vec2 modelMarginMax = modelSize - uvMarginScaled.zw;
@@ -48,6 +48,7 @@ vec4 ninePatch()
     return texture(mainTex, finalUV);
 }
 
+
 void mainVertex(in vec2 position, in vec2 uv, in vec4 color, out vec2 fragCoord) {
     gl_Position = vec4(vec3(position, 1) * model * projection, 1);
     fragCoord = uv;
@@ -56,7 +57,9 @@ void mainVertex(in vec2 position, in vec2 uv, in vec4 color, out vec2 fragCoord)
 void mainFragment(in vec2 fragCoord, out vec4 fragColor) {
     vec4 color;
     if (padding == vec4(0.0)) {
-        color = texture(mainTex, uvRegion.xy + fragCoord * uvRegion.zw);
+        vec2 uvMin = uvRect.xy;
+        vec2 uvMax = uvRect.xy + uvRect.zw;
+        color = texture(mainTex, uvRect.xy + fragCoord * uvRect.zw);
     } else {
         color = ninePatch();
     }

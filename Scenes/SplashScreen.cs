@@ -103,7 +103,7 @@ internal class SplashScreen : Scene
 		font.GenerateBitmap(16, 256);
 		AssetManager.LoadEmbeddedAsset<Shader>("shaders.ui.shadxy", new ShaderConfig(material =>
 		{
-			material.SetProperty("uvRegion", new Region(Vector2.zero, Vector2.one));
+			material.SetProperty("uvRect", new Rect(Vector2.zero, Vector2.one));
 			material.SetProperty("padding", new Region(Vector2.zero));
 			material.SetProperty("paddingScale", 1F);
 		}, (material, name, obj) =>

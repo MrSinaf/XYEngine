@@ -50,6 +50,7 @@ public class Texture2D : Texture, IAsset, IImGuiRenderable
 	}
 	
 	public Region GetUVRegion(RectInt target) => new (target.position * texel, (target.position + target.size) * texel);
+	public Rect GetUVRect(RectInt target) => new (target.position * texel, target.size * texel);
 	
 	public void Load(AssetProperty property)
 	{

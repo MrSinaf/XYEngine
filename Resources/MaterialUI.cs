@@ -3,22 +3,20 @@ namespace XYEngine.Resources;
 public class MaterialUI(Shader shader = null, params (string, object)[] properties) : Material(shader ?? Shader.GetDefaultUI(), properties)
 {
 	public const string TEXTURE = "mainTex";
-	public const string UV_REGION = "uvRegion";
+	public const string UV_RECT = "uvRect";
 	public const string PADDING = "padding";
 	public const string PADDING_SCALE = "paddingScale";
 	
-	public MaterialUI SetTexture(Texture2D texture, Region? region = null)
+	public MaterialUI SetTexture(Texture2D texture)
 	{
 		SetProperty(TEXTURE, texture);
-		if (region.HasValue)
-			SetUVRegion(new Region(region.Value.position00 * texture.texel, region.Value.position11 * texture.texel));
 		
 		return this;
 	}
 	
-	public MaterialUI SetUVRegion(Region region)
+	public MaterialUI SetUVRect(Rect rect)
 	{
-		SetProperty(UV_REGION, region);
+		SetProperty(UV_RECT, rect);
 		return this;
 	}
 	
