@@ -154,7 +154,7 @@ public static class XYDebug
 	
 	public static bool IsCompatibleInput(Type type) => type == typeof(string) || type == typeof(bool) || type == typeof(Vector2) || type == typeof(Vector2Int) ||
 													   type == typeof(RegionInt) || type == typeof(Region) || type == typeof(RectInt) || type == typeof(Rect) ||
-													   type == typeof(float) || type == typeof(int);
+													   type == typeof(float) || type == typeof(int) || type == typeof(Color);
 	
 	public static object GetInput(string id, object property)
 	{
@@ -223,6 +223,21 @@ public static class XYDebug
 			var value = (int)property;
 			if (ImGui.DragInt($"##{id}", ref value))
 				property = value;
+		}
+		else if (type == typeof(Color))
+		{
+			var color = (Color)property;
+			var value = new Vector4(color.r, color.g, color.b, color.a) * Color.FACTOR;
+			if (ImGui.ColorButton($"##{id}", value))
+				ImGui.OpenPopup($"colorPicker_{id}");
+			
+			if (ImGui.BeginPopup($"colorPicker_{id}"))
+			{
+				if (ImGui.ColorPicker4($"##picker_{id}", ref value))
+					property = new Color((byte)(value.X * 255), (byte)(value.Y * 255), (byte)(value.Z * 255), (byte)(value.W * 255));
+				
+				ImGui.EndPopup();
+			}
 		}
 		
 		return property;
