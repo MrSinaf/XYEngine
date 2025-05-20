@@ -152,8 +152,9 @@ public static class XYDebug
 		ImGui.TextColored(new Vector4(0.5f, 0.8f, 0.3f, 1.0f), property.ToString());
 	}
 	
-	public static bool IsCompatibleInput(Type type) => type == typeof(string) || type == typeof(bool) || type == typeof(Vector2) || type == typeof(Vector2Int)
-													   || type == typeof(RegionInt) || type == typeof(float) || type == typeof(int);
+	public static bool IsCompatibleInput(Type type) => type == typeof(string) || type == typeof(bool) || type == typeof(Vector2) || type == typeof(Vector2Int) ||
+													   type == typeof(RegionInt) || type == typeof(Region) || type == typeof(RectInt) || type == typeof(Rect) ||
+													   type == typeof(float) || type == typeof(int);
 	
 	public static object GetInput(string id, object property)
 	{
@@ -183,12 +184,33 @@ public static class XYDebug
 			if (ImGui.DragInt2($"##{id}", ref values[0], 1))
 				property = new Vector2Int(values[0], values[1]);
 		}
+		else if (type == typeof(Region))
+		{
+			var region = (Region)property;
+			var value = new Vector4(region.position00.x, region.position00.y, region.position11.x, region.position11.y);
+			if (ImGui.DragFloat4($"##{id}", ref value, 1))
+				property = new Region(value.X, value.Y, value.Z, value.W);
+		}
 		else if (type == typeof(RegionInt))
 		{
 			var region = (RegionInt)property;
 			int[] values = [region.position00.x, region.position00.y, region.position11.x, region.position11.y];
 			if (ImGui.DragInt4($"##{id}", ref values[0], 1))
 				property = new RegionInt(values[0], values[1], values[2], values[3]);
+		}
+		else if (type == typeof(Rect))
+		{
+			var region = (Rect)property;
+			var value = new Vector4(region.position.x, region.position.y, region.size.x, region.size.y);
+			if (ImGui.DragFloat4($"##{id}", ref value, 0.1F))
+				property = new Rect(value.X, value.Y, value.Z, value.W);
+		}
+		else if (type == typeof(RectInt))
+		{
+			var region = (RectInt)property;
+			int[] values = [region.position.x, region.position.y, region.size.x, region.size.y];
+			if (ImGui.DragInt4($"##{id}", ref values[0], 1))
+				property = new RectInt(values[0], values[1], values[2], values[3]);
 		}
 		else if (type == typeof(float))
 		{

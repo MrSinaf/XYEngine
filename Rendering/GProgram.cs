@@ -115,6 +115,13 @@ public class GProgram : IDisposable
 			gl.Uniform4(location, value.position00.x, value.position00.y, value.position11.x, value.position11.y);
 	}
 	
+	public void SetUniform(string name, Rect value)
+	{
+		Use();
+		if (GetUniformLocation(name, out var location))
+			gl.Uniform4(location, value.position.x, value.position.y, value.size.x, value.size.y);
+	}
+	
 	public void SetUniform(string name, Matrix3X3 value)
 	{
 		Use();
