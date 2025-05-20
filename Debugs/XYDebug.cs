@@ -71,7 +71,7 @@ public static class XYDebug
 		if (Input.IsKeyHeldDown(Key.ControlLeft) && Input.IsKeyPressed(Key.F1))
 		{
 			showMainMenuBar = !showMainMenuBar;
-			SceneManager.current.canvas.root.padding = showMainMenuBar ? new RegionInt(0, 0, 0, -18) : new RegionInt();
+			AdapteRootCanvasSize();
 		}
 	}
 	
@@ -87,16 +87,15 @@ public static class XYDebug
 			{
 				if (ImGui.MenuItem("Reload Scene"))
 				{
-					SceneManager.current.InternalDestroy();
-					SceneManager.current.InternalStart();
-					SceneManager.current.canvas.Destroy();
-					SceneManager.current.InternalBuildUI();
+					SceneManager.SetCurrentScene(SceneManager.current.GetType());
+					AdapteRootCanvasSize();
 				}
 				
 				if (ImGui.MenuItem("Rebuild UI"))
 				{
 					SceneManager.current.canvas.Destroy();
 					SceneManager.current.InternalBuildUI();
+					AdapteRootCanvasSize();
 				}
 				
 				if (ImGui.BeginMenu("Display"))
@@ -210,4 +209,9 @@ public static class XYDebug
 	public static System.Numerics.Vector2 ToSystem(Vector2 value) => new (value.x, value.y);
 	
 	public static Vector2 ToXY(System.Numerics.Vector2 value) => new (value.X, value.Y);
+	
+	private static void AdapteRootCanvasSize()
+	{
+		SceneManager.current.canvas.root.UpdateSize(Graphics.resolution - (showMainMenuBar ? new Vector2Int(0, 18) : Vector2Int.zero));
+	}
 }
