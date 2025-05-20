@@ -64,6 +64,8 @@ public class UIElement
 			field = value;
 			foreach (var child in children)
 				child.parentActive = value;
+			
+			elementChanged(this);
 		}
 	} = true;
 	

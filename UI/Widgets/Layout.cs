@@ -79,8 +79,12 @@ public class Layout : UIElement
 		
 		for (var i = 0; i < array.Length; i++)
 		{
-			array[i].SimuleDraw();
-			SetChild(array[i], i);
+			var child = array[i];
+			if (child.isActif)
+			{
+				child.SimuleDraw();
+				SetChild(child, i);
+			}
 		}
 		
 		BuildMatrix();
