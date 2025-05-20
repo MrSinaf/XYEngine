@@ -14,7 +14,7 @@ public class ScrollBar : UIElement
 	
 	private bool isDragging;
 	private float clickOffset;
-	
+	private bool isDirty;
 	
 	public int cursorPosition
 	{
@@ -33,25 +33,20 @@ public class ScrollBar : UIElement
 		}
 	}
 	
-	
 	public int contentLength
 	{
 		get;
 		set
 		{
-			if (field == value) return;
+			if (field == value)
+				return;
 			
 			field = value;
-			var cursorLength = orientation == ScrollBarOrientation.Vertical ? cursor.size.y : cursor.size.x;
-			var scaleRatio = contentLength < cursorLength ? 1F : 1F * cursorLength / contentLength;
-			cursor.scale = orientation == ScrollBarOrientation.Vertical ? new Vector2(1, scaleRatio) : new Vector2(scaleRatio, 1);
-			
-			cursorPosition = Math.Min(cursorPosition, maxCursorPosition);
+			isDirty = true;
 		}
 	}
 	
 	private int maxCursorPosition => contentLength - (int)((orientation == ScrollBarOrientation.Vertical ? cursor.scale.y : cursor.scale.x) * contentLength);
-	
 	
 	public ScrollBar(Action<int> onCursorChanged, ScrollBarOrientation orientation, string prefab = null)
 	{
@@ -65,8 +60,21 @@ public class ScrollBar : UIElement
 		Input.clickDown += OnClickDown;
 		Input.clickUp += OnClickUp;
 		Input.mouseMove += OnMouseMove;
+		elementChanged += _ => isDirty = true;
 		
 		UIPrefab.Apply(this, prefab);
+	}
+	
+	protected override void OnEndDraw()
+	{
+		if (!isDirty)
+			return;
+		
+		var cursorLength = orientation == ScrollBarOrientation.Vertical ? cursor.size.y : cursor.size.x;
+		var scaleRatio = contentLength < cursorLength ? 1F : 1F * cursorLength / contentLength;
+		cursor.scale = orientation == ScrollBarOrientation.Vertical ? new Vector2(1, scaleRatio) : new Vector2(scaleRatio, 1);
+		
+		cursorPosition = Math.Min(cursorPosition, maxCursorPosition);
 	}
 	
 	private void OnClickDown(MouseButton obj)

@@ -13,7 +13,6 @@ public class ScrollView : UIElement
 	public readonly bool withVertical;
 	public readonly bool withHorizontal;
 	
-	
 	private UIElement content;
 	private bool isDirty;
 	
