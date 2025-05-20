@@ -4,7 +4,7 @@ namespace XYEngine.UI;
 
 public class Canvas
 {
-	public readonly RootElement root = new ();
+	internal readonly RootElement root = new ();
 	
 	private Matrix3X3 matrix;
 	
@@ -31,7 +31,6 @@ public class Canvas
 	private void ApplyResolution()
 	{
 		matrix = Matrix3X3.CreateOrthographic(Graphics.resolution.x, Graphics.resolution.y, false);
-		root.size = Graphics.resolution;
-		root.UnmarkMatrixIsDirty();
+		root.UpdateSize(Graphics.resolution);
 	}
 }

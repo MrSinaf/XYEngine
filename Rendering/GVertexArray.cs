@@ -9,7 +9,7 @@ public class GVertexArray : IDisposable
 	
 	public bool isDisposed { get; protected set; }
 	
-	public GVertexArray(VertexLayout layout, GBuffer vertices, GBuffer indices)
+	public GVertexArray(VertexLayout layout, GBuffer<byte> vertices, GBuffer<uint> indices)
 	{
 		handle = gl.GenVertexArray();
 		if (handle == 0)
@@ -48,7 +48,7 @@ public class GVertexArray : IDisposable
 		if (handle == 0)
 			throw new Exception("Failed to generate Vertex Array Object (VAO)");
 		
-		gl.DeleteVertexArray(handle);
+		GCommandQueue.Enqueue(() => gl.DeleteVertexArray(handle));
 		isDisposed = true;
 		
 		GC.SuppressFinalize(this);

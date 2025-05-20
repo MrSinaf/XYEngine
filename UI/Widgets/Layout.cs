@@ -47,12 +47,14 @@ public class Layout : UIElement
 	public override void AddChild(UIElement element)
 	{
 		base.AddChild(element);
+		element.elementChanged += OnElementChanged;
 		isDirty = true;
 	}
 	
 	public override void RemoveChild(UIElement element)
 	{
 		base.RemoveChild(element);
+		element.elementChanged -= OnElementChanged;
 		isDirty = true;
 	}
 	
@@ -62,16 +64,28 @@ public class Layout : UIElement
 			ReArrange();
 	}
 	
+	private void OnElementChanged(UIElement element)
+	{
+		isDirty = true;
+	}
+	
 	private void ReArrange()
 	{
 		size = Vector2Int.zero;
 		
-		var array = inverse && !vertical || !inverse && vertical ? childrenArray.Reverse().ToArray() : childrenArray;
+		var array = childrenArray;
+		if (inverse && !vertical || !inverse && vertical)
+			Array.Reverse(array);
+		
 		for (var i = 0; i < array.Length; i++)
 		{
 			array[i].SimuleDraw();
 			SetChild(array[i], i);
 		}
+		
+		BuildMatrix();
+		foreach (var child in array)
+			child.BuildMatrix();
 		
 		isDirty = false;
 	}

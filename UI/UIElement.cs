@@ -4,25 +4,34 @@ namespace XYEngine.UI;
 
 public class UIElement
 {
+	public string name;
 	public UIElement parent { get; private set; }
 	
 	public int nChild => children.Count;
 	public UIElement[] childrenArray => children.ToArray();
 	
 	public bool isActif => active && parentActive && !isDestroyed;
-	public bool canDraw => material != null && mesh is { isValid: true };
-	public bool isDestroyed { get; private set; }
+	public bool canDraw => (!overflowHidden || isObservable) && material != null && mesh is { isValid: true };
+	public bool isObservable => clipArea.position11 != Vector2Int.zero;
 	
-	protected Vector2Int realPosition { get; private set; }
+	public bool isDestroyed { get; private set; }
+	public Vector2Int realPosition { get; private set; }
+	public Matrix3X3 inversedMatrix { get; private set; }
+	public RegionInt clipArea { get; protected set; }
+	
+	public bool overflowHidden { get; set; } = true;
+	
 	protected bool scaleWithoutSize;
 	
 	private readonly List<UIElement> children = [];
 	private bool dirtyMatrix;
 	private bool dirtyScaledSize;
 	
+	public event Action<UIElement> elementChanged = _ => { };
+	
 	#region GetSet
 	
-	public virtual bool active
+	private bool parentActive
 	{
 		get;
 		set
@@ -33,11 +42,21 @@ public class UIElement
 		}
 	} = true;
 	
+	protected virtual Vector2Int offset
+	{
+		get;
+		set
+		{
+			field = value;
+			MarkMatrixIsDirty();
+		}
+	}
+	
 	public virtual Mesh mesh { get; set; }
 	
 	public virtual Material material { get; set; }
 	
-	private bool parentActive
+	public virtual bool active
 	{
 		get;
 		set
@@ -123,6 +142,16 @@ public class UIElement
 		}
 	}
 	
+	public virtual RegionInt padding
+	{
+		get;
+		set
+		{
+			field = value;
+			MarkMatrixIsDirty();
+		}
+	}
+	
 	public virtual Vector2 pivot
 	{
 		get;
@@ -197,13 +226,13 @@ public class UIElement
 		}
 	} = Matrix3X3.Identity();
 	
+	public virtual bool visible { get; set; } = true;
+	
 	public virtual Color tint { get; set; } = Color.white;
 	
 	public virtual float opacity { get; set; } = 1;
 	
 	#endregion
-	
-	protected virtual void OnAdded() { }
 	
 	public virtual void AddChild(UIElement element)
 	{
@@ -225,30 +254,44 @@ public class UIElement
 		children.Remove(element);
 	}
 	
-	public virtual T GetParentType<T>() where T : UIElement
+	public virtual T GetParent<T>() where T : UIElement
 	{
 		if (parent is T element)
 			return element;
 		
 		foreach (var child in children)
-			return child.GetParentType<T>();
+			return child.GetParent<T>();
 		
 		return null;
 	}
 	
-	public virtual T GetChildType<T>() where T : UIElement
+	public virtual T GetChild<T>(bool recursif = false) where T : UIElement
 	{
 		foreach (var child in children)
 			if (child is T element)
 				return element;
 		
-		foreach (var child in children)
-			return child.GetChildType<T>();
+		if (recursif)
+			foreach (var child in children)
+				return child.GetChild<T>(true);
 		
 		return null;
 	}
 	
-	public virtual T[] GetChildrenType<T>() where T : UIElement
+	public virtual T GetChild<T>(string name, bool recursif = false) where T : UIElement
+	{
+		foreach (var child in children)
+			if (child is T element && element.name == name)
+				return element;
+		
+		if (recursif)
+			foreach (var child in children)
+				return child.GetChild<T>(name, true);
+		
+		return null;
+	}
+	
+	public virtual T[] GetChildren<T>(bool recursif = false) where T : UIElement
 	{
 		var list = new List<T>();
 		
@@ -256,9 +299,10 @@ public class UIElement
 			if (child is T element)
 				list.Add(element);
 		
-		foreach (var child in children)
-		foreach (var childBis in child.GetChildrenType<T>())
-			list.Add(childBis);
+		if (recursif)
+			foreach (var child in children)
+			foreach (var childBis in child.GetChildren<T>(true))
+				list.Add(childBis);
 		
 		return list.ToArray();
 	}
@@ -283,20 +327,29 @@ public class UIElement
 		parent.children.Insert(0, this);
 	}
 	
-	public bool ContainsPoint(Vector2Int point)
+	public bool ContainsPoint(Vector2 point)
 	{
-		point -= realPosition;
-		return point >= Vector2Int.zero && point <= scaledSize;
+		if (mesh is not { isValid: true })
+			return false;
+		
+		if (overflowHidden)
+			if (point.IsOutsideBounds(clipArea.position00, clipArea.position11))
+				return false;
+		
+		var localPoint = inversedMatrix.TransformPoint(point - mesh.bounds.position);
+		return scaleWithoutSize
+				   ? localPoint.IsInsideBounds(Vector2.zero, scaledSize)
+				   : localPoint.IsInsideBounds(mesh.bounds.position, -mesh.bounds.position);
 	}
 	
-	public void MarkMatrixIsDirty()
+	public virtual void MarkMatrixIsDirty()
 	{
 		dirtyMatrix = true;
 		foreach (var child in children)
 			child.MarkMatrixIsDirty();
 	}
 	
-	public void UnmarkMatrixIsDirty()
+	public virtual void UnmarkMatrixIsDirty()
 	{
 		if (!dirtyMatrix)
 			return;
@@ -310,22 +363,14 @@ public class UIElement
 		material = null;
 		mesh = null;
 		isDestroyed = true;
+		
+		if (parent is { isDestroyed: false })
+			parent.RemoveChild(this);
+		
 		foreach (var child in children)
 			child.Destroy();
 		
 		UIEvent.UnRegisterAllEvents(this);
-	}
-	
-	public void UpdateMatrix()
-	{
-		if (GetType() == typeof(RootElement))
-			return;
-		
-		if (parent == null)
-			throw new InvalidOperationException("To update the matrix, a parent is required.");
-		
-		parent.UpdateMatrix();
-		BuildMatrix();
 	}
 	
 	public void SimuleDraw()
@@ -340,12 +385,12 @@ public class UIElement
 		if (!isActif)
 			return;
 		
-		OnBeginDraw();
-		
 		if (dirtyMatrix)
 			BuildMatrix();
 		
-		if (canDraw)
+		OnBeginDraw();
+		
+		if (canDraw && visible)
 		{
 			var program = material.shader.gProgram;
 			program.SetUniform("modelSize", scaledSize);
@@ -362,21 +407,25 @@ public class UIElement
 		OnEndDraw();
 	}
 	
+	protected virtual void OnAdded() { }
 	protected virtual void OnBeginDraw() { }
 	protected virtual void OnEndDraw() { }
 	protected virtual void OnDestroy() { }
 	protected virtual void OnRemoved() { }
 	
-	private void BuildMatrix()
+	public void BuildMatrix()
 	{
 		var scaledPivotSize = (pivot * scaledSize).ToVector2Int();
+		var parentBoundsPadding = parent.scaledSize - (parent.padding.position00 + parent.padding.position11);
 		var calculatePosition = Vector2Int.zero;
 		
+		var boundsPosition = Vector2.zero;
 		if (anchorMin != anchorMax)
 		{
-			var anchorSize = new Vector2(MathF.Abs(anchorMin.x - anchorMax.x), MathF.Abs(anchorMin.y - anchorMax.y)) * parent.size;
+			var anchorSize = new Vector2(MathF.Abs(anchorMin.x - anchorMax.x), MathF.Abs(anchorMin.y - anchorMax.y)) * parentBoundsPadding;
 			
-			if (anchorSize.x == 0) anchorSize.x = size.x;
+			if (anchorSize.x == 0)
+				anchorSize.x = size.x;
 			else
 			{
 				anchorSize.x -= margin.position00.x + margin.position11.x;
@@ -384,7 +433,8 @@ public class UIElement
 				scaledPivotSize.x = 0;
 			}
 			
-			if (anchorSize.y == 0) anchorSize.y = size.y;
+			if (anchorSize.y == 0)
+				anchorSize.y = size.y;
 			else
 			{
 				anchorSize.y -= margin.position00.y + margin.position11.y;
@@ -392,14 +442,65 @@ public class UIElement
 				scaledPivotSize.y = 0;
 			}
 			
+			boundsPosition = anchorSize * pivot;
 			size = anchorSize.ToVector2Int();
 		}
 		
-		realPosition = calculatePosition += position + parent.realPosition - scaledPivotSize + (parent.scaledSize * anchorMin).ToVector2Int();
-		calculatePosition -= mesh is { isValid: true } ? (!scaleWithoutSize ? scaledSize * mesh.bounds.position : mesh.bounds.position).ToVector2Int() : Vector2Int.zero;
+		calculatePosition += position;
+		
+		realPosition = calculatePosition += parent.realPosition + parent.padding.position00 - scaledPivotSize + (parentBoundsPadding * anchorMin).ToVector2Int();
+		CalculeClipArea();
+		
+		if (mesh is { isValid: true } && !scaleWithoutSize)
+		{
+			var boundsScaled = scaledSize * mesh.bounds.position;
+			calculatePosition -= boundsScaled.ToVector2Int();
+			boundsPosition += boundsScaled;
+		}
+		boundsPosition += scaledPivotSize;
+		
 		var matrixScale = scaleWithoutSize ? scale : scaledSize;
-		matrix = Matrix3X3.CreateScale(matrixScale) *
-				 Matrix3X3.CreateRotation(float.DegreesToRadians(rotation)) *
-				 Matrix3X3.CreateTranslation(calculatePosition);
+		matrix = Matrix3X3.CreateScale(matrixScale);
+		if (rotation != 0)
+		{
+			matrix *= Matrix3X3.CreateTranslation(-boundsPosition) *
+					  Matrix3X3.CreateRotation(float.DegreesToRadians(rotation)) *
+					  Matrix3X3.CreateTranslation(boundsPosition);
+		}
+		matrix *= Matrix3X3.CreateTranslation(calculatePosition + offset);
+		inversedMatrix = matrix.Inverse();
+		
+		elementChanged(this);
+	}
+	
+	private void CalculeClipArea()
+	{
+		var topLeft = new Vector2(realPosition.x, realPosition.y);
+		var topRight = new Vector2(realPosition.x + scaledSize.x, realPosition.y);
+		var bottomLeft = new Vector2(realPosition.x, realPosition.y + scaledSize.y);
+		var bottomRight = new Vector2(realPosition.x + scaledSize.x, realPosition.y + scaledSize.y);
+		
+		var pivotPosition = realPosition + (scaledSize * pivot).ToVector2Int();
+		topLeft = RotatePointAroundPivot(topLeft, pivotPosition, float.DegreesToRadians(rotation));
+		topRight = RotatePointAroundPivot(topRight, pivotPosition, float.DegreesToRadians(rotation));
+		bottomLeft = RotatePointAroundPivot(bottomLeft, pivotPosition, float.DegreesToRadians(rotation));
+		bottomRight = RotatePointAroundPivot(bottomRight, pivotPosition, float.DegreesToRadians(rotation));
+		
+		clipArea = new RegionInt(new Vector2Int((int)MathF.Floor(MathF.Min(topLeft.x, MathF.Min(topRight.x, MathF.Min(bottomLeft.x, bottomRight.x)))),
+												(int)MathF.Floor(MathF.Min(topLeft.y, MathF.Min(topRight.y, MathF.Min(bottomLeft.y, bottomRight.y))))),
+								 new Vector2Int((int)MathF.Ceiling(MathF.Max(topLeft.x, MathF.Max(topRight.x, MathF.Max(bottomLeft.x, bottomRight.x)))),
+												(int)MathF.Ceiling(MathF.Max(topLeft.y, MathF.Max(topRight.y, MathF.Max(bottomLeft.y, bottomRight.y))))));
+		if (overflowHidden)
+			clipArea = clipArea.Intersection(parent.clipArea);
+		
+		Vector2 RotatePointAroundPivot(Vector2 point, Vector2 pivot, float radians)
+		{
+			var cos = MathF.Cos(radians);
+			var sin = MathF.Sin(radians);
+			var translatedPoint = point - pivot;
+			var rotatedX = translatedPoint.x * cos - translatedPoint.y * sin;
+			var rotatedY = translatedPoint.x * sin + translatedPoint.y * cos;
+			return new Vector2(rotatedX, rotatedY) + pivot;
+		}
 	}
 }

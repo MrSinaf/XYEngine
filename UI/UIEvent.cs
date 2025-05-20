@@ -13,7 +13,6 @@ public static class UIEvent
 	private static readonly Dictionary<UIElement, Dictionary<Type, Action>> elements = new ();
 	private static readonly List<(UIElement, Type, Action)> pendingRegistrations = [];
 	private static readonly List<(UIElement, Type)> pendingUnRegistrations = [];
-	
 	private static readonly Dictionary<UIElement, HashSet<Type>> previousStatesElement = new ();
 	
 	public static void Register(UIElement element, Type eventType, Action action) => pendingRegistrations.Add((element, eventType, action));
@@ -31,14 +30,15 @@ public static class UIEvent
 		ApplyPendingLists();
 		
 		var mousePosition = Input.mousePosition.ToVector2Int();
+		
 		foreach (var (element, events) in elements)
 		{
-			if (!element.active)
+			if (!element.isActif)
 				continue;
 			
 			var previousStates = previousStatesElement[element];
-			var newStates = new HashSet<Type>();
 			var isMouseOver = element.ContainsPoint(mousePosition);
+			var newStates = new HashSet<Type>();
 			
 			if (isMouseOver)
 				newStates.Add(Type.MouseOver);
@@ -69,7 +69,7 @@ public static class UIEvent
 						
 						break;
 					case Type.MouseClick:
-						if (isMouseOver && Input.IsMouseButtonDown(MouseButton.Left))
+						if (isMouseOver && Input.IsMouseButtonPressed(MouseButton.Left))
 						{
 							action();
 							newStates.Add(Type.MouseClick);

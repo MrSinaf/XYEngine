@@ -6,7 +6,7 @@ public abstract class Scene
 {
 	public static Scene current => SceneManager.current;
 	
-	private readonly List<ObjectBehaviour> objects = [];
+	private readonly List<XYObject> objects = [];
 	public Camera camera { get; private set; }
 	public Canvas canvas { get; private set; }
 	
@@ -14,14 +14,19 @@ public abstract class Scene
 	{
 		Time.ResetTime();
 		camera = new Camera(objects);
-		canvas = new Canvas();
 		
 		Start();
 	}
 	
+	internal void InternalBuildUI()
+	{
+		canvas = new Canvas();
+		BuildUI(canvas.root);
+	}
+	
 	internal void InternalUpdate()
 	{
-		UIEvent.Update();
+		camera.Update();
 		Update();
 		for (var i = 0; i < objects.Count; i++)
 		{
@@ -52,14 +57,16 @@ public abstract class Scene
 	{
 		Destroy();
 		canvas.Destroy();
+		camera.Destroy();
 		
 		foreach (var obj in objects)
 			obj.Destroy();
 	}
 	
 	protected virtual void Start() { }
+	protected virtual void BuildUI(RootElement root) { }
 	protected virtual void Destroy() { }
 	protected virtual void Update() { }
 	
-	internal static void AddObject(ObjectBehaviour obj) => SceneManager.current.objects.Add(obj);
+	internal static void AddObject(XYObject obj) => SceneManager.current.objects.Add(obj);
 }

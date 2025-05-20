@@ -1,13 +1,29 @@
-﻿using NVorbis;
+﻿using ImGuiNET;
+using NAudio.Wave;
+using NVorbis;
 using Silk.NET.OpenAL;
+using XYEngine.Debugs;
+using XYEngine.Utils;
 using static XYEngine.Audio;
 
 namespace XYEngine.Resources;
 
-public class AudioClip : IAsset
+public class AudioClip : IAsset, IImGuiRenderable
 {
 	private uint handle;
 	private uint source;
+	
+	public int duration;
+	
+	public float currentTime
+	{
+		get
+		{
+			al.GetSourceProperty(source, SourceFloat.SecOffset, out var time);
+			return time;
+		}
+		set => al.SetSourceProperty(source, SourceFloat.SecOffset, MathUtils.Range(value, 0, duration));
+	}
 	
 	private void LoadWav(Stream stream)
 	{
@@ -74,7 +90,30 @@ public class AudioClip : IAsset
 		if (audioData.Length % (bitsPerSample / 8) != 0)
 			throw new FormatException("Invalid audio data length.");
 		
+		duration = audioData.Length / (sampleRate * numChannels * (bitsPerSample / 8));
 		handle = CreateBuffer(audioData, format, sampleRate);
+		source = CreateSource(handle);
+	}
+	
+	private void LoadMp3(Stream stream)
+	{
+		using var mp3Reader = new Mp3FileReader(stream);
+		using var waveStream = WaveFormatConversionStream.CreatePcmStream(mp3Reader);
+		var buffer = new byte[waveStream.Length];
+		waveStream.ReadExactly(buffer);
+		
+		var numChannels = waveStream.WaveFormat.Channels;
+		var bitsPerSample = waveStream.WaveFormat.BitsPerSample;
+		
+		var format = numChannels switch
+		{
+			1 => bitsPerSample == 8 ? BufferFormat.Mono8 : BufferFormat.Mono16,
+			2 => bitsPerSample == 8 ? BufferFormat.Stereo8 : BufferFormat.Stereo16,
+			_ => throw new FormatException($"Unsupported channel count: {numChannels}")
+		};
+		
+		duration = buffer.Length / (waveStream.WaveFormat.SampleRate * numChannels * (bitsPerSample / 8));
+		handle = CreateBuffer(buffer, format, waveStream.WaveFormat.SampleRate);
 		source = CreateSource(handle);
 	}
 	
@@ -96,6 +135,7 @@ public class AudioClip : IAsset
 			pcmStream.Write(byteArray, 0, byteArray.Length);
 		}
 		
+		duration = (int)vorbis.TotalTime.TotalSeconds;
 		handle = CreateBuffer(pcmStream.ToArray(), vorbis.Channels == 1 ? BufferFormat.Mono16 : BufferFormat.Stereo16, vorbis.SampleRate);
 		source = CreateSource(handle);
 	}
@@ -114,6 +154,9 @@ public class AudioClip : IAsset
 			case ".wav":
 				LoadWav(stream);
 				break;
+			case ".mp3":
+				LoadMp3(stream);
+				break;
 			case ".ogg":
 				LoadOgg(stream);
 				break;
@@ -127,4 +170,32 @@ public class AudioClip : IAsset
 		al.DeleteBuffer(handle);
 		al.DeleteSource(source);
 	}
+	
+	public void OnImGuiRender()
+	{
+		al.GetSourceProperty(source, GetSourceInteger.SourceState, out var state);
+		var isPlaying = state == (int)SourceState.Playing;
+		var position = currentTime;
+		
+		ImGui.Text($@"{TimeSpan.FromSeconds(position):mm\:ss} / {TimeSpan.FromSeconds(duration):mm\:ss}");
+		
+		if (ImGui.SliderFloat("##timeline", ref position, 0, duration, "%.2f s"))
+			currentTime = position;
+		
+		if (ImGui.Button(isPlaying ? "Pause" : "Play"))
+		{
+			if (isPlaying)
+				Pause();
+			else
+				Play();
+		}
+		ImGui.SameLine();
+		
+		if (ImGui.Button("Stop"))
+		{
+			Stop();
+			currentTime = 0;
+		}
+	}
+
 }

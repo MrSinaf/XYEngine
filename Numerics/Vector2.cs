@@ -2,11 +2,31 @@
 
 public struct Vector2(float x, float y) : IEquatable<Vector2>
 {
+	public const float EPSILON = 1e-5F;
+	
+	/// <summary>
+	///     Vector2(0, 0)
+	/// </summary>
 	public static Vector2 zero => new ();
+	/// <summary>
+	///     Vector2(1, 1)
+	/// </summary>
 	public static Vector2 one => new (1);
+	/// <summary>
+	///     Vector2(-1, 0)
+	/// </summary>
 	public static Vector2 left => new (-1, 0);
+	/// <summary>
+	///     Vector2(1, 0)
+	/// </summary>
 	public static Vector2 right => new (1, 0);
+	/// <summary>
+	///     Vector2(0, 1)
+	/// </summary>
 	public static Vector2 top => new (0, 1);
+	/// <summary>
+	///     Vector2(0, -1)
+	/// </summary>
 	public static Vector2 bottom => new (0, -1);
 	
 	public float x { get; set; } = x;
@@ -20,11 +40,19 @@ public struct Vector2(float x, float y) : IEquatable<Vector2>
 	
 	public void Normalize() => this = normalized;
 	
+	public bool IsOutsideBounds(Vector2 min, Vector2 max) => x < min.x || x > max.x || y < min.y || y > max.y;
+	public bool IsInsideBounds(Vector2 min, Vector2 max) => x >= min.x && x <= max.x && y >= min.y && y <= max.y;
+	
 	public static Vector2 Lerp(Vector2 start, Vector2 end, float factor)
 	{
 		factor = Math.Clamp(factor, 0, 1);
 		return new Vector2(start.x + (end.x - start.x) * factor, start.y + (end.y - start.y) * factor);
 	}
+	
+	public static Vector2 Clamp(Vector2 value, Vector2 min, Vector2 max) => new (
+		Math.Clamp(value.x, min.x, max.x),
+		Math.Clamp(value.y, min.y, max.y)
+	);
 	
 	public Vector2Int ToVector2Int(RoundingMode operation = RoundingMode.Round) => operation switch
 	{
@@ -46,13 +74,13 @@ public struct Vector2(float x, float y) : IEquatable<Vector2>
 	public static Vector2 operator /(Vector2 a, Vector2 b) => new (a.x / b.x, a.y / b.y);
 	public static Vector2 operator -(Vector2 a) => new (-a.x, -a.y);
 	
-	public static bool operator ==(Vector2 a, Vector2 b) => a.x == b.x && a.y == b.y;
-	public static bool operator !=(Vector2 a, Vector2 b) => a.x != b.x || a.y != b.y;
+	public static bool operator ==(Vector2 a, Vector2 b) => MathF.Abs(a.x - b.x) <= EPSILON && MathF.Abs(a.y - b.y) <= EPSILON;
+	public static bool operator !=(Vector2 a, Vector2 b) => !(a == b);
 	
-	public static bool operator >(Vector2 a, Vector2 b) => a.x > b.x && a.y > b.y;
-	public static bool operator <(Vector2 a, Vector2 b) => a.x < b.x && a.y < b.y;
-	public static bool operator >=(Vector2 a, Vector2 b) => a.x >= b.x && a.y >= b.y;
-	public static bool operator <=(Vector2 a, Vector2 b) => a.x <= b.x && a.y <= b.y;
+	public static bool operator >(Vector2 a, Vector2 b) => a.length > b.length;
+	public static bool operator <(Vector2 a, Vector2 b) => a.length < b.length;
+	public static bool operator >=(Vector2 a, Vector2 b) => a.length >= b.length;
+	public static bool operator <=(Vector2 a, Vector2 b) => a.length <= b.length;
 	
 	public bool Equals(Vector2 other) => x.Equals(other.x) && y.Equals(other.y);
 	public override bool Equals(object obj) => obj is Vector2 other && Equals(other);

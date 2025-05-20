@@ -2,7 +2,7 @@
 
 namespace XYEngine;
 
-public class ObjectBehaviour
+public class XYObject
 {
 	public bool enable = true;
 	public bool isDestroyed { get; private set; }
@@ -11,6 +11,7 @@ public class ObjectBehaviour
 	
 	public Mesh mesh;
 	public Material material;
+	public int drawOrder;
 	
 	private bool dirtyMatrix;
 	
@@ -62,9 +63,8 @@ public class ObjectBehaviour
 	
 	#endregion
 	
-	public ObjectBehaviour() => Scene.AddObject(this);
+	public XYObject() => Scene.AddObject(this);
 	
-	protected internal virtual void Start() { }
 	protected internal virtual void Update() { }
 	protected virtual void Destroyed() { }
 	

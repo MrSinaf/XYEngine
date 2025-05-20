@@ -1,41 +1,32 @@
-#type VERTEX
-out vec2 frag_uv;
-
-void main()
-{
-    gl_Position = vec4(vec3(position, 1) * model * projection, 1);
-    frag_uv = uv;
-}
-
-#type FRAGMENT
-in vec2 frag_uv;
-
-out vec4 out_color;
+uniform vec2 resolution;
+uniform float time;
 
 uniform sampler2D mainTex;
+uniform mat3 projection;
+uniform mat3 view;
+uniform mat3 model;
+
 uniform vec2 mainTexSize;
 uniform vec2 modelSize;
-
-uniform vec4 uvRegion;
+uniform vec4 uvRect;
 uniform vec4 padding;
 uniform float paddingScale;
-
 uniform vec4 tint;
 uniform float alpha;
 
 vec4 ninePatch()
 {
-    vec2 regionSize = uvRegion.zw - uvRegion.xy;
-    vec2 texSizeScaled = mainTexSize * regionSize * paddingScale;
+    vec4 uvRegion = vec4(uvRect.xy, uvRect.xy + uvRect.zw);
+    vec2 texSizeScaled = mainTexSize * uvRect.zw * paddingScale;
     vec4 uvMarginScaled = padding * paddingScale;
 
-    vec2 regionMarginMin = uvRegion.xy + (uvMarginScaled.xy / texSizeScaled) * regionSize;
-    vec2 regionMarginMax = uvRegion.zw - (uvMarginScaled.zw / texSizeScaled) * regionSize;
+    vec2 regionMarginMin = uvRegion.xy + (uvMarginScaled.xy / texSizeScaled) * uvRect.zw;
+    vec2 regionMarginMax = uvRegion.zw - (uvMarginScaled.zw / texSizeScaled) * uvRect.zw;
 
     vec2 modelMarginMin = uvMarginScaled.xy;
     vec2 modelMarginMax = modelSize - uvMarginScaled.zw;
 
-    vec2 fragPos = frag_uv * modelSize;
+    vec2 fragPos = fragCoord * modelSize;
     vec2 finalUV;
 
     if (fragPos.x < modelMarginMin.x) {
@@ -53,18 +44,27 @@ vec4 ninePatch()
     } else {
         finalUV.y = regionMarginMin.y + ((fragPos.y - modelMarginMin.y) / (modelMarginMax.y - modelMarginMin.y)) * (regionMarginMax.y - regionMarginMin.y);
     }
+
     return texture(mainTex, finalUV);
 }
 
-void main()
-{
+
+void mainVertex(in vec2 position, in vec2 uv, in vec4 color, out vec2 fragCoord) {
+    gl_Position = vec4(vec3(position, 1) * model * projection, 1);
+    fragCoord = uv;
+}
+
+void mainFragment(in vec2 fragCoord, out vec4 fragColor) {
     vec4 color;
     if (padding == vec4(0.0)) {
-        color = texture(mainTex, uvRegion.xy + frag_uv * uvRegion.zw);
+        vec2 uvMin = uvRect.xy;
+        vec2 uvMax = uvRect.xy + uvRect.zw;
+        color = texture(mainTex, uvRect.xy + fragCoord * uvRect.zw);
     } else {
         color = ninePatch();
     }
 
-    out_color = color * tint;
-    out_color.a *= alpha;
+    color.rgb *= tint.rgb;
+    color.a *= alpha;
+    fragColor = color;
 }

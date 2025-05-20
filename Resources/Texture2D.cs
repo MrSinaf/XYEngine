@@ -1,9 +1,11 @@
-﻿using StbImageSharp;
+﻿using ImGuiNET;
+using StbImageSharp;
+using XYEngine.Debugs;
 using XYEngine.Rendering;
 
 namespace XYEngine.Resources;
 
-public class Texture2D : Texture, IAsset
+public class Texture2D : Texture, IAsset, IImGuiRenderable
 {
 	public static readonly Texture2DConfig internalConfig = new (TextureWrap.Repeat, TextureMag.Nearest);
 	public static Texture2DConfig defaultConfig = internalConfig;
@@ -16,20 +18,22 @@ public class Texture2D : Texture, IAsset
 	public Vector2 texel { get; private set; }
 	
 	private Color[] pixels;
-	private bool isInGPU;
 	
 	public void Apply()
 	{
 		if (pixels == null)
 			throw new NullReferenceException();
 		
-		if (!isInGPU)
+		GCommandQueue.Enqueue(() =>
 		{
-			gTexture.SetImage2D(width, height, pixels);
-			isInGPU = true;
-		}
-		else
-			gTexture.SetSubImage2D(0, 0, width, height, pixels);
+			if (gTexture == null)
+			{
+				gTexture = new GTexture();
+				gTexture.SetImage2D(width, height, pixels);
+			}
+			else
+				gTexture.SetSubImage2D(0, 0, width, height, pixels);
+		});
 	}
 	
 	public Texture2D() { }
@@ -45,6 +49,9 @@ public class Texture2D : Texture, IAsset
 		Apply();
 	}
 	
+	public Region GetUVRegion(RectInt target) => new (target.position * texel, (target.position + target.size) * texel);
+	public Rect GetUVRect(RectInt target) => new (target.position * texel, target.size * texel);
+	
 	public void Load(AssetProperty property)
 	{
 		var image = ImageResult.FromStream(property.stream, ColorComponents.RedGreenBlueAlpha);
@@ -54,14 +61,28 @@ public class Texture2D : Texture, IAsset
 		texel = Vector2.one / size;
 		pixels = Color.ConvertBytesToColors(image.Data);
 		
+		Apply();
+		
 		var config = property.config as Texture2DConfig ?? defaultConfig;
 		SetWrap(config.wrap);
 		SetFilter((TextureMin)config.filter, config.filter);
-		
-		Apply();
 	}
 	
-	public void UnLoad() => gTexture.Dispose();
+	public void UnLoad()
+	{
+		pixels = null;
+		GCommandQueue.Enqueue(() => gTexture.Dispose());
+	}
+	
+	public void OnImGuiRender()
+	{
+		XYDebug.ShowProperty("Dimensions", $"{size.x}x{size.y}");
+		ImGui.Spacing();
+		
+		var ratio = (float)height / width;
+		var availableSpace = ImGui.GetContentRegionAvail().X;
+		ImGui.Image((IntPtr)gTexture.handle, new System.Numerics.Vector2(availableSpace, (int)(availableSpace * ratio)));
+	}
 }
 
 public record class Texture2DConfig(TextureWrap wrap, TextureMag filter) : IAssetConfig;

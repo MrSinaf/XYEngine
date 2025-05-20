@@ -7,14 +7,25 @@ namespace XYEngine.Rendering;
 public class GProgram : IDisposable
 {
 	private static uint? currentHandle;
-	public readonly uint handle;
+	
+	private readonly Dictionary<string, int> uniformLocations = [];
+	public readonly uint handle = gl.CreateProgram();
 	
 	public bool isDisposed { get; protected set; }
+	private uint vertexHandle;
+	private uint fragmentHandle;
 	
-	public GProgram(string vertexSource, string fragmentSource)
+	public void Use()
 	{
-		handle = gl.CreateProgram();
+		if (currentHandle == handle)
+			return;
 		
+		gl.UseProgram(handle);
+		currentHandle = handle;
+	}
+	
+	public void Compile(string vertexSource, string fragmentSource)
+	{
 		if (!string.IsNullOrEmpty(vertexSource))
 			CompileShader(ShaderType.VertexShader, vertexSource);
 		
@@ -28,9 +39,7 @@ public class GProgram : IDisposable
 		// Vérifie son statut :
 		if (statusCode != 1)
 		{
-			isDisposed = true;
-			gl.DeleteProgram(handle);
-			
+			Decompile();
 			throw new InvalidOperationException($"Failed to Link Shader.\n{statusInfo}\n\nStatus Code: {statusCode}");
 		}
 		
@@ -48,25 +57,27 @@ public class GProgram : IDisposable
 			// Vérifie son statut :
 			if (statusCode != 1)
 			{
-				isDisposed = true;
-				gl.DeleteShader(shader);
-				gl.DeleteProgram(handle);
-				
+				Decompile();
 				throw new InvalidOperationException($"Failed to Compile {type} Source.\n{statusInfo}\n\nStatus Code: {statusCode}");
 			}
 			
 			gl.AttachShader(handle, shader);
-			gl.DeleteShader(shader);
+			
+			if (type == ShaderType.VertexShader)
+				vertexHandle = shader;
+			else if (type == ShaderType.FragmentShader)
+				fragmentHandle = shader;
 		}
 	}
 	
-	public void Use()
+	public void Decompile()
 	{
-		if (currentHandle == handle)
-			return;
+		gl.DetachShader(handle, vertexHandle);
+		gl.DeleteShader(vertexHandle);
+		gl.DetachShader(handle, fragmentHandle);
+		gl.DeleteShader(fragmentHandle);
 		
-		gl.UseProgram(handle);
-		currentHandle = handle;
+		gl.Flush();
 	}
 	
 	public void SetUniform(string name, bool value)
@@ -102,6 +113,13 @@ public class GProgram : IDisposable
 		Use();
 		if (GetUniformLocation(name, out var location))
 			gl.Uniform4(location, value.position00.x, value.position00.y, value.position11.x, value.position11.y);
+	}
+	
+	public void SetUniform(string name, Rect value)
+	{
+		Use();
+		if (GetUniformLocation(name, out var location))
+			gl.Uniform4(location, value.position.x, value.position.y, value.size.x, value.size.y);
 	}
 	
 	public void SetUniform(string name, Matrix3X3 value)
@@ -152,12 +170,12 @@ public class GProgram : IDisposable
 	
 	private bool GetUniformLocation(string name, out int location)
 	{
-		location = gl.GetUniformLocation(handle, name);
-		var isValid = location != -1;
-		// if (!isValid)
-		// 	XY.InternalLog("Shader", $"Uniform '{name}' not found in shader program.", TypeLog.Warning);
+		if (uniformLocations.TryGetValue(name, out location))
+			return location != -1;
 		
-		return isValid;
+		location = gl.GetUniformLocation(handle, name);
+		uniformLocations[name] = location;
+		return location != -1;
 	}
 	
 	public void Dispose()

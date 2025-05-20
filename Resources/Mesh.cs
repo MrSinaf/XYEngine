@@ -5,8 +5,6 @@ namespace XYEngine.Resources;
 public class Mesh : IDisposable
 {
 	public GVertexArray vertexArray { get; private set; }
-	private GBuffer vertexBuffer;
-	private GBuffer indexBuffer;
 	
 	public uint[] indices;
 	public Vector2[] vertices;
@@ -19,6 +17,10 @@ public class Mesh : IDisposable
 	public bool hasColors => colors?.Length > 0;
 	public bool hasUvs => uvs?.Length > 0;
 	
+	private GBuffer<byte> vertexBuffer;
+	private GBuffer<uint> indexBuffer;
+	private bool isDisposed;
+	
 	public Mesh Apply()
 	{
 		CalculateBounds();
@@ -26,14 +28,19 @@ public class Mesh : IDisposable
 		
 		if (isValid)
 		{
+			vertexBuffer.Dispose();
+			indexBuffer.Dispose();
 			vertexArray.Dispose();
 			isValid = false;
 		}
 		
-		vertexBuffer = GBuffer.Create(BufferType.VertexBuffer, MakeVertexDataBlob(layout));
-		indexBuffer = GBuffer.Create(BufferType.ElementsBuffer, indices);
-		vertexArray = new GVertexArray(layout, vertexBuffer, indexBuffer);
-		isValid = true;
+		GCommandQueue.Enqueue(() =>
+		{
+			vertexBuffer = GBuffer<byte>.Create(BufferType.VertexBuffer, MakeVertexDataBlob(layout));
+			indexBuffer = GBuffer<uint>.Create(BufferType.ElementsBuffer, indices);
+			vertexArray = new GVertexArray(layout, vertexBuffer, indexBuffer);
+			isValid = true;
+		});
 		
 		return this;
 	}
@@ -117,10 +124,16 @@ public class Mesh : IDisposable
 	
 	public void Dispose()
 	{
+		if (isDisposed)
+			return;
+		
 		vertexBuffer?.Dispose();
 		indexBuffer?.Dispose();
 		vertexArray?.Dispose();
+		isDisposed = true;
 		
 		GC.SuppressFinalize(this);
 	}
+	
+	~Mesh() => Dispose();
 }

@@ -9,4 +9,16 @@ public static class Utility
 		
 		return memory.ToArray();
 	}
+	
+	public static void JustDoIt(Action action)
+	{
+		try
+		{
+			action();
+		}
+		catch
+		{
+			// (￣_￣|||)
+		}
+	}
 }

@@ -1,16 +1,22 @@
 ﻿using System.Reflection;
+using ImGuiNET;
 using Silk.NET.Core;
+using Silk.NET.GLFW;
 using Silk.NET.Input;
 using Silk.NET.Maths;
 using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
 using StbImageSharp;
+using XYEngine.Debugs;
 using XYEngine.Inputs;
+using XYEngine.Rendering;
 using XYEngine.Scenes;
+using XYEngine.UI;
+using XYEngine.Utils;
 
 namespace XYEngine;
 
-public enum DisplayMode { Windowed, NoBorder, FullScren }
+public enum DisplayMode { Windowed, NoBorder, FullScreen }
 
 public class GameWindow
 {
@@ -26,7 +32,7 @@ public class GameWindow
 		window = Window.Create(WindowOptions.Default with
 		{
 			Title = name,
-			VSync = true,
+			VSync = false,
 			
 			// Initialisation des paramètres pour le SplashScreen :
 			WindowBorder = WindowBorder.Hidden,
@@ -53,16 +59,20 @@ public class GameWindow
 			case DisplayMode.Windowed:
 				window.WindowBorder = WindowBorder.Resizable;
 				window.WindowState = WindowState.Normal;
+				window.IsVisible = false;
 				window.Size = new Vector2D<int>(1200, 600);
 				window.Center();
+				window.IsVisible = true;
 				window.Focus();
 				break;
 			case DisplayMode.NoBorder:
 				window.WindowBorder = WindowBorder.Hidden;
 				window.WindowState = WindowState.Maximized;
+				window.IsVisible = false;
 				window.Size = window.Monitor.VideoMode.Resolution!.Value;
+				window.IsVisible = true;
 				break;
-			case DisplayMode.FullScren:
+			case DisplayMode.FullScreen:
 				window.WindowState = WindowState.Fullscreen;
 				break;
 			default:
@@ -72,7 +82,9 @@ public class GameWindow
 		size = new Vector2Int(window.Size.X, window.Size.Y);
 	}
 	
-	private void Load()
+	public static void SetBackgroundColor(Color color) => Graphics.SetBackgroundColor(color);
+	
+	private unsafe void Load()
 	{
 		ImageResult result;
 		if (File.Exists("icon.png"))
@@ -85,16 +97,39 @@ public class GameWindow
 		}
 		
 		var icon = new RawImage(result.Width, result.Height, result.Data);
+		var input = window.CreateInput();
+		var gl = window.CreateOpenGL();
+		
 		window.SetWindowIcon(ref icon);
 		window.Center();
 		
-		Graphics.Init(window.CreateOpenGL());
+		Graphics.Init(gl);
 		Graphics.Viewport(size);
 		
-		Input.Initialize(window.CreateInput());
+		Primitif.Init();
+		Input.Initialize(input);
 		Audio.Initialize();
 		
+		// TODO > (￣_,￣ )
+		if (window.Native?.Glfw.HasValue == true)
+		{
+			var glfw = Glfw.GetApi();
+			var glfwPtr = window.Native?.Glfw.Value;
+			
+			glfw.SetCharCallback((WindowHandle*)glfwPtr, OnCharacterReceived);
+		}
+		
+		// XYDebug.state = DebugState.None;
+		XYDebug.Load(gl, window, input);
+		
 		SceneManager.SetCurrentScene<SplashScreen>();
+	}
+	
+	private unsafe void OnCharacterReceived(WindowHandle* window, uint codepoint)
+	{
+		ImGui.GetIO().AddInputCharacter((char)codepoint);
+		var character = char.ConvertFromUtf32((int)codepoint)[0];
+		Input.charDown(character);
 	}
 	
 	private static void Update(double delta)
@@ -103,16 +138,24 @@ public class GameWindow
 		try
 		{
 			SceneManager.Update();
+			XYDebug.Update();
 		}
 		catch (Exception e)
 		{
 			XY.InternalLog("Error", e, TypeLog.Error);
 		}
 		
-		Input.EndInput();
+		UIEvent.Update();
+		Input.Update();
 	}
 	
-	private static void Render(double delta) => SceneManager.Render();
+	private static void Render(double delta)
+	{
+		GCommandQueue.ExecuteAll();
+		
+		SceneManager.Render();
+		XYDebug.Render();
+	}
 	
 	private static void FramebufferResize(Vector2D<int> value)
 	{

@@ -1,5 +1,4 @@
 ﻿using Silk.NET.OpenGL;
-using StbImageSharp;
 using XYEngine.Resources;
 using Shader = XYEngine.Resources.Shader;
 
@@ -14,14 +13,13 @@ public static class Graphics
 	
 	internal static void Init(GL gl)
 	{
-		StbImage.stbi_set_flip_vertically_on_load(1);
 		Graphics.gl = gl;
 		
 		gl.Enable(EnableCap.Blend);
 		gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
 	}
 	
-	public static void SetBackgroundColor(Color color) => gl.ClearColor(color.r * Color.FACTOR, color.g * Color.FACTOR, color.b * Color.FACTOR, 1);
+	internal static void SetBackgroundColor(Color color) => gl.ClearColor(color.r * Color.FACTOR, color.g * Color.FACTOR, color.b * Color.FACTOR, 1);
 	
 	internal static void BeginDraw()
 	{

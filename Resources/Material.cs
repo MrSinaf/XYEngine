@@ -47,6 +47,9 @@ public class Material
 				case Vector2Int v2:
 					shader.gProgram.SetUniform(name, v2);
 					break;
+				case Rect v4:
+					shader.gProgram.SetUniform(name, v4);
+					break;
 				case Region v4:
 					shader.gProgram.SetUniform(name, v4);
 					break;

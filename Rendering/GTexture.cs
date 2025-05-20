@@ -124,5 +124,6 @@ public class GTexture : IDisposable
 		
 		gl.DeleteTexture(handle);
 		isDisposed = true;
+		GC.SuppressFinalize(this);
 	}
 }

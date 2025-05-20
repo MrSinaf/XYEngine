@@ -4,16 +4,23 @@ namespace XYEngine.Utils;
 
 public static class MeshFactory
 {
-	public static Mesh CreateQuad(Vector2 size, Region? uvs = null)
+	public static Mesh CreateQuad(Vector2 size, Region? uvs = null, bool centered = true)
 	{
 		var mesh = new Mesh();
-		var x = size.x * 0.5F;
-		var y = size.y * 0.5F;
-		var meshUv = uvs ?? new Region(Vector2.zero, Vector2.one);
 		
-		mesh.vertices = [new Vector2(-x, -y), new Vector2(x, -y), new Vector2(x, y), new Vector2(-x, y)];
-		mesh.indices = [0, 3, 1, 3, 2, 1];
+		if (centered)
+		{
+			var x = size.x * 0.5F;
+			var y = size.y * 0.5F;
+			mesh.vertices = [new Vector2(-x, y), new Vector2(x, y), new Vector2(x, -y), new Vector2(-x, -y)];
+		}
+		else
+			mesh.vertices = [new Vector2(0, size.y), size, new Vector2(size.x, 0), Vector2.zero];
+
+		
+		var meshUv = uvs ?? new Region(Vector2.zero, Vector2.one);
 		mesh.uvs = [meshUv.position00, new Vector2(meshUv.position11.x, meshUv.position00.y), meshUv.position11, new Vector2(meshUv.position00.x, meshUv.position11.y)];
+		mesh.indices = [0, 3, 1, 3, 2, 1];
 		
 		return mesh;
 	}
@@ -32,10 +39,10 @@ public static class MeshFactory
 			var pos11 = quad.vertices.position + quad.vertices.size;
 			var iV = i * 4;
 			
-			mesh.vertices[iV] = pos00;
-			mesh.vertices[iV + 1] = new Vector2(pos11.x, pos00.y);
-			mesh.vertices[iV + 2] = pos11;
-			mesh.vertices[iV + 3] = new Vector2(pos00.x, pos11.y);
+			mesh.vertices[iV] = new Vector2(pos00.x, pos11.y);
+			mesh.vertices[iV + 1] = pos11;
+			mesh.vertices[iV + 2] = new Vector2(pos11.x, pos00.y);
+			mesh.vertices[iV + 3] = pos00;
 			
 			mesh.uvs[iV] = quad.uvs.position00;
 			mesh.uvs[iV + 1] = new Vector2(quad.uvs.position11.x, quad.uvs.position00.y);
@@ -50,6 +57,17 @@ public static class MeshFactory
 			mesh.indices[iI + 4] = iV + 2;
 			mesh.indices[iI + 5] = iV + 1;
 		}
+		
+		return mesh;
+	}
+	
+	public static Mesh ChangeQuadUV(Mesh mesh, Region uvs, int index = 0)
+	{
+		var iV = index * 4;
+		mesh.uvs[iV] = uvs.position00;
+		mesh.uvs[iV + 1] = new Vector2(uvs.position11.x, uvs.position00.y);
+		mesh.uvs[iV + 2] = uvs.position11;
+		mesh.uvs[iV + 3] = new Vector2(uvs.position00.x, uvs.position11.y);
 		
 		return mesh;
 	}

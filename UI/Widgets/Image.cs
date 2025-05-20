@@ -5,17 +5,28 @@ namespace XYEngine.UI.Widgets;
 
 public class Image : UIElement
 {
-	public Image(Texture2D texture, Region? uvs = null)
+	public Texture2D texture
 	{
-		base.mesh = MeshFactory.CreateQuad(Vector2.one, uvs).Apply();
-		base.material = new Material(Shader.GetDefaultUI());
-		base.material.SetProperty("mainTex", texture);
-		base.size = texture.size;
+		get;
+		set
+		{
+			field = value;
+			material.SetProperty(MaterialUI.TEXTURE, field);
+		}
 	}
 	
-	public Image(Material material, Region? uvs = null)
+	public Image(Texture2D texture)
 	{
-		base.mesh = MeshFactory.CreateQuad(Vector2.one, uvs).Apply();
+		base.mesh = MeshFactory.CreateQuad(Vector2.one).Apply();
+		base.material = new MaterialUI();
+		base.size = texture.size;
+		
+		this.texture = texture;
+	}
+	
+	public Image(Material material)
+	{
+		base.mesh = MeshFactory.CreateQuad(Vector2.one).Apply();
 		base.material = material;
 	}
 }

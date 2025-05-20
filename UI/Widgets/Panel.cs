@@ -10,7 +10,7 @@ public class Panel : UIElement
 	[IsDefaultPrefab]
 	public static void DefaultPrefab(Panel e)
 	{
-		e.material = new Material(Shader.GetDefaultUI(), ("mainTex", AssetManager.GetEmbeddedAsset<Texture2D>("textures.white_pixel.png")));
+		e.material = new MaterialUI().SetTexture(Primitif.whitePixel);
 		e.mesh = MeshFactory.CreateQuad(Vector2.one).Apply();
 		e.anchorMin = Vector2.zero;
 		e.anchorMax = Vector2.one;

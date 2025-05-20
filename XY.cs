@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using System.Runtime.InteropServices;
 using XYEngine.Scenes;
 
 namespace XYEngine;
@@ -11,10 +12,10 @@ public static class XY
 	
 	public enum VersionState { Release, Stable, Preview, Dev }
 	
-	public const VersionState VERSION_STATE = VersionState.Release;
+	public const VersionState VERSION_STATE = VersionState.Dev;
 	public static string version => Assembly.GetAssembly(typeof(XY)).GetName().Version.ToString();
 	
-	public static void LaunchGame<T>(string name, Action splashScreenAction = null) where T : Scene, new()
+	public static void LaunchGame<T>(string name, params Func<Task>[] loadingTasks) where T : Scene, new()
 	{
 		if (gameIsRunning)
 		{
@@ -22,11 +23,15 @@ public static class XY
 			return;
 		}
 		
+		string[] nativeLibsName = ["cimgui", "freetype", "glfw3", "soft_oal"];
+		foreach (var lib in nativeLibsName)
+			ResolveNativeLibrary(lib);
+		
 		AppDomain.CurrentDomain.AssemblyResolve += ResolveAssembly;
 		InternalLog($"  XYEngine v{version} - {VERSION_STATE}", TypeLog.Info);
 		
 		SplashScreen.startScene = typeof(T);
-		SplashScreen.action = splashScreenAction;
+		SplashScreen.loadingTasks = loadingTasks;
 		gameIsRunning = true;
 		
 		_ = new GameWindow(name);
@@ -81,5 +86,14 @@ public static class XY
 	{
 		var assemblyPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "packages", new AssemblyName(args.Name).Name + ".dll");
 		return !File.Exists(assemblyPath) ? null : Assembly.LoadFrom(assemblyPath);
+	}
+	
+	private static void ResolveNativeLibrary(string libraryName)
+	{
+		var nativeLibExtension = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "{0}.dll" : RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ? "lib{0}.so" : "lib{0}.dylib";
+		var nativeLibPath = Path.Combine(AppContext.BaseDirectory, "runtimes", RuntimeInformation.RuntimeIdentifier, "native", string.Format(nativeLibExtension, libraryName));
+		
+		if (File.Exists(nativeLibPath))
+			NativeLibrary.Load(nativeLibPath);
 	}
 }

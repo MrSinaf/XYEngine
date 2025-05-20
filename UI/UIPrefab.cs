@@ -1,4 +1,5 @@
 using System.Reflection;
+using JetBrains.Annotations;
 
 namespace XYEngine.UI;
 
@@ -45,4 +46,5 @@ public static class UIPrefab
 }
 
 [AttributeUsage(AttributeTargets.Method)]
+[MeansImplicitUse]
 public class IsDefaultPrefab : Attribute;

@@ -5,21 +5,22 @@ namespace XYEngine.Inputs;
 public static class Input
 {
 	public static Vector2 mousePosition { get; private set; }
-	public static float mouseScroll => mouse.ScrollWheels[0].Y;
 	
-	public static event Action<Key> keyDown = _ => { };
-	public static event Action<Key> keyUp = _ => { };
-	public static event Action<MouseButton> mouseDown = _ => { };
-	public static event Action<MouseButton> mouseUp = _ => { };
-	public static event Action<Vector2> mouseMove = _ => { };
-	
-	private static IKeyboard keyboard;
-	private static IMouse mouse;
+	public static event Action<Key> keyDown = delegate { };
+	public static event Action<Key> keyUp = delegate { };
+	public static event Action<MouseButton> clickDown = delegate { };
+	public static event Action<MouseButton> clickUp = delegate { };
+	public static event Action<Vector2> mouseMove = delegate { };
+	public static event Action<Vector2> mouseScroll = delegate { };
+	public static Action<char> charDown = delegate { };
 	
 	private static readonly HashSet<Key> currentKeys = [];
 	private static readonly HashSet<Key> previousKeys = [];
 	private static readonly HashSet<MouseButton> currentMouseButtons = [];
 	private static readonly HashSet<MouseButton> previousMouseButtons = [];
+	
+	private static IKeyboard keyboard;
+	private static IMouse mouse;
 	
 	internal static void Initialize(IInputContext context)
 	{
@@ -37,10 +38,10 @@ public static class Input
 		mouse.MouseDown += (_, button) =>
 		{
 			currentMouseButtons.Add((MouseButton)button);
-			mouseDown((MouseButton)button);
+			clickDown((MouseButton)button);
 		};
 		
-		mouse.MouseUp += (_, button) => mouseUp((MouseButton)button);
+		mouse.MouseUp += (_, button) => clickUp((MouseButton)button);
 		
 		mouse.MouseMove += (_, position) =>
 		{
@@ -48,9 +49,16 @@ public static class Input
 			mouseMove(newMousePosition - mousePosition);
 			mousePosition = newMousePosition;
 		};
+		
+		mouse.Scroll += (_, scroll) => mouseScroll(new Vector2(scroll.X, scroll.Y));
 	}
 	
-	internal static void EndInput()
+	internal static void Update()
+	{
+		EndInput();
+	}
+	
+	private static void EndInput()
 	{
 		previousKeys.Clear();
 		foreach (var key in currentKeys)
@@ -65,11 +73,11 @@ public static class Input
 		currentMouseButtons.Clear();
 	}
 	
-	public static bool IsKeyPressed(Key key) => keyboard.IsKeyPressed((Silk.NET.Input.Key)key);
-	public static bool IsKeyDown(Key key) => !previousKeys.Contains(key) && currentKeys.Contains(key);
-	public static bool IsKeyUp(Key key) => previousKeys.Contains(key) && !currentKeys.Contains(key);
+	public static bool IsKeyHeldDown(Key key) => keyboard.IsKeyPressed((Silk.NET.Input.Key)key);
+	public static bool IsKeyPressed(Key key) => !previousKeys.Contains(key) && currentKeys.Contains(key);
+	public static bool IsKeyReleased(Key key) => previousKeys.Contains(key) && !currentKeys.Contains(key);
 	
-	public static bool IsMouseButtonPressed(MouseButton button) => previousMouseButtons.Contains(button) && currentMouseButtons.Contains(button);
-	public static bool IsMouseButtonDown(MouseButton button) => !previousMouseButtons.Contains(button) && currentMouseButtons.Contains(button);
-	public static bool IsMouseButtonUp(MouseButton button) => previousMouseButtons.Contains(button) && !currentMouseButtons.Contains(button);
+	public static bool IsMouseButtonHeldDown(MouseButton button) => mouse.IsButtonPressed((Silk.NET.Input.MouseButton)button);
+	public static bool IsMouseButtonPressed(MouseButton button) => !previousMouseButtons.Contains(button) && currentMouseButtons.Contains(button);
+	public static bool IsMouseButtonReleased(MouseButton button) => previousMouseButtons.Contains(button) && !currentMouseButtons.Contains(button);
 }
