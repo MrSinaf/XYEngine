@@ -486,11 +486,12 @@ public class UIElement
 		bottomLeft = RotatePointAroundPivot(bottomLeft, pivotPosition, float.DegreesToRadians(rotation));
 		bottomRight = RotatePointAroundPivot(bottomRight, pivotPosition, float.DegreesToRadians(rotation));
 		
-		var rotatedClipArea = new RegionInt(new Vector2Int((int)MathF.Floor(MathF.Min(topLeft.x, MathF.Min(topRight.x, MathF.Min(bottomLeft.x, bottomRight.x)))),
-														   (int)MathF.Floor(MathF.Min(topLeft.y, MathF.Min(topRight.y, MathF.Min(bottomLeft.y, bottomRight.y))))),
-											new Vector2Int((int)MathF.Ceiling(MathF.Max(topLeft.x, MathF.Max(topRight.x, MathF.Max(bottomLeft.x, bottomRight.x)))),
-														   (int)MathF.Ceiling(MathF.Max(topLeft.y, MathF.Max(topRight.y, MathF.Max(bottomLeft.y, bottomRight.y))))));
-		clipArea = rotatedClipArea.Intersection(parent.clipArea);
+		clipArea = new RegionInt(new Vector2Int((int)MathF.Floor(MathF.Min(topLeft.x, MathF.Min(topRight.x, MathF.Min(bottomLeft.x, bottomRight.x)))),
+												(int)MathF.Floor(MathF.Min(topLeft.y, MathF.Min(topRight.y, MathF.Min(bottomLeft.y, bottomRight.y))))),
+								 new Vector2Int((int)MathF.Ceiling(MathF.Max(topLeft.x, MathF.Max(topRight.x, MathF.Max(bottomLeft.x, bottomRight.x)))),
+												(int)MathF.Ceiling(MathF.Max(topLeft.y, MathF.Max(topRight.y, MathF.Max(bottomLeft.y, bottomRight.y))))));
+		if (overflowHidden)
+			clipArea = clipArea.Intersection(parent.clipArea);
 		
 		Vector2 RotatePointAroundPivot(Vector2 point, Vector2 pivot, float radians)
 		{
