@@ -16,7 +16,7 @@ public enum DebugState { Full, Limited, None }
 
 public static class XYDebug
 {
-	public static DebugState state { get; internal set; } = DebugState.Full;
+	public static DebugState state { get; set; } = DebugState.Full;
 	
 	private static IDebugWindow[] debugWindows;
 	private static ImGuiController imGuiController;

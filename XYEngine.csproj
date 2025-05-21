@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <OutputType>Library</OutputType>
-        <AssemblyVersion>0.2.0.0</AssemblyVersion>
+        <AssemblyVersion>0.2.0.1</AssemblyVersion>
         <TargetFramework>net9</TargetFramework>
         <LangVersion>preview</LangVersion> <!-- Permettant d'utiliser C#14 -->
         <ImplicitUsings>enable</ImplicitUsings>
@@ -25,7 +25,7 @@
         <PackageReference Include="Silk.NET.OpenGL.Extensions.ImGui" Version="2.22.0"/>
         <PackageReference Include="Silk.NET.Windowing.Glfw" Version="2.22.0"/>
         <PackageReference Include="StbImageSharp" Version="2.30.15"/>
-        <PackageReference Include="System.Text.Json" Version="9.0.0"/>
+        <PackageReference Include="System.Text.Json" Version="9.0.5"/>
     </ItemGroup>
 
     <Target Name="MoveDllsToPackages" AfterTargets="Build">
