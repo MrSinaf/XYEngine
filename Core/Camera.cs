@@ -34,7 +34,7 @@ public class Camera
 	
 	internal void Render()
 	{
-		var matrix = Matrix3X3.CreateTranslation(-position.ToVector2Int()) *
+		var matrix = Matrix3X3.CreateTranslation(-position) *
 					 Matrix3X3.CreateOrthographic(resolution.x, resolution.y);
 		
 		foreach (var shader in Shader.shaders)
