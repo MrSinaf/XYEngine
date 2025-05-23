@@ -26,16 +26,16 @@ public class Mesh : IDisposable
 		CalculateBounds();
 		var layout = GetVertexLayout();
 		
-		if (isValid)
-		{
-			vertexBuffer.Dispose();
-			indexBuffer.Dispose();
-			vertexArray.Dispose();
-			isValid = false;
-		}
-		
 		GCommandQueue.Enqueue(() =>
 		{
+			if (isValid)
+			{
+				vertexBuffer.Dispose();
+				indexBuffer.Dispose();
+				vertexArray.Dispose();
+				isValid = false;
+			}
+			
 			vertexBuffer = GBuffer<byte>.Create(BufferType.VertexBuffer, MakeVertexDataBlob(layout));
 			indexBuffer = GBuffer<uint>.Create(BufferType.ElementsBuffer, indices);
 			vertexArray = new GVertexArray(layout, vertexBuffer, indexBuffer);
@@ -71,43 +71,74 @@ public class Mesh : IDisposable
 	private byte[] MakeVertexDataBlob(VertexLayout layout)
 	{
 		var buffer = new byte[layout.size * vertices.Length];
-		var spanBuffer = new Span<byte>(buffer);
 		
 		var position = 0;
 		for (var i = 0; i < vertices.Length; i++)
 		{
 			var vertice = vertices[i];
-			Copy(BitConverter.GetBytes(vertice.x), ref spanBuffer);
-			Copy(BitConverter.GetBytes(vertice.y), ref spanBuffer);
+			
+			if (position + 4 > buffer.Length)
+				throw new InvalidOperationException("Write overflow in vertex data blob generation.");
+			
+			BitConverter.TryWriteBytes(buffer.AsSpan(position), vertice.x);
+			position += 4;
+			
+			if (position + 4 > buffer.Length)
+				throw new InvalidOperationException("Write overflow in vertex data blob generation.");
+			
+			BitConverter.TryWriteBytes(buffer.AsSpan(position), vertice.y);
+			position += 4;
 			
 			if (hasColors)
 			{
 				var color = colors[i];
-				Copy(BitConverter.GetBytes(color.r * Color.FACTOR), ref spanBuffer);
-				Copy(BitConverter.GetBytes(color.g * Color.FACTOR), ref spanBuffer);
-				Copy(BitConverter.GetBytes(color.b * Color.FACTOR), ref spanBuffer);
-				Copy(BitConverter.GetBytes(color.a * Color.FACTOR), ref spanBuffer);
+				
+				if (position + 4 > buffer.Length)
+					throw new InvalidOperationException("Write overflow in vertex data blob generation.");
+				
+				BitConverter.TryWriteBytes(buffer.AsSpan(position), color.r * Color.FACTOR);
+				position += 4;
+				
+				if (position + 4 > buffer.Length)
+					throw new InvalidOperationException("Write overflow in vertex data blob generation.");
+				
+				BitConverter.TryWriteBytes(buffer.AsSpan(position), color.g * Color.FACTOR);
+				position += 4;
+				
+				if (position + 4 > buffer.Length)
+					throw new InvalidOperationException("Write overflow in vertex data blob generation.");
+				
+				BitConverter.TryWriteBytes(buffer.AsSpan(position), color.b * Color.FACTOR);
+				position += 4;
+				
+				if (position + 4 > buffer.Length)
+					throw new InvalidOperationException("Write overflow in vertex data blob generation.");
+				
+				BitConverter.TryWriteBytes(buffer.AsSpan(position), color.a * Color.FACTOR);
+				position += 4;
 			}
 			
 			if (hasUvs)
 			{
 				var uv = uvs[i];
-				Copy(BitConverter.GetBytes(uv.x), ref spanBuffer);
-				Copy(BitConverter.GetBytes(uv.y), ref spanBuffer);
+				
+				if (position + 4 > buffer.Length)
+					throw new InvalidOperationException("Write overflow in vertex data blob generation.");
+				
+				BitConverter.TryWriteBytes(buffer.AsSpan(position), uv.x);
+				position += 4;
+				
+				if (position + 4 > buffer.Length)
+					throw new InvalidOperationException("Write overflow in vertex data blob generation.");
+				
+				BitConverter.TryWriteBytes(buffer.AsSpan(position), uv.y);
+				position += 4;
 			}
 		}
 		
 		return buffer;
-		
-		void Copy(byte[] source, ref Span<byte> spanBuffer)
-		{
-			if (position + source.Length > spanBuffer.Length)
-				throw new InvalidOperationException("Write overflow in vertex data blob generation.");
-			
-			source.CopyTo(spanBuffer.Slice(position, source.Length));
-			position += source.Length;
-		}
 	}
+	
 	
 	private VertexLayout GetVertexLayout()
 	{
@@ -127,9 +158,16 @@ public class Mesh : IDisposable
 		if (isDisposed)
 			return;
 		
-		vertexBuffer?.Dispose();
-		indexBuffer?.Dispose();
-		vertexArray?.Dispose();
+		GCommandQueue.Enqueue(() =>
+		{
+			if (isValid)
+			{
+				vertexBuffer.Dispose();
+				indexBuffer.Dispose();
+				vertexArray.Dispose();
+				isValid = false;
+			}
+		});
 		isDisposed = true;
 		
 		GC.SuppressFinalize(this);
