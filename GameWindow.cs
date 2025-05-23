@@ -119,15 +119,14 @@ public class GameWindow
 			glfw.SetCharCallback((WindowHandle*)glfwPtr, OnCharacterReceived);
 		}
 		
-		// XYDebug.state = DebugState.None;
 		XYDebug.Load(gl, window, input);
-		
 		SceneManager.SetCurrentScene<SplashScreen>();
 	}
 	
 	private unsafe void OnCharacterReceived(WindowHandle* window, uint codepoint)
 	{
-		ImGui.GetIO().AddInputCharacter((char)codepoint);
+		if (XYDebug.state != DebugState.None)
+			ImGui.GetIO().AddInputCharacter((char)codepoint);
 		var character = char.ConvertFromUtf32((int)codepoint)[0];
 		Input.charDown(character);
 	}

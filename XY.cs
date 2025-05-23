@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using System.Runtime.InteropServices;
+using XYEngine.Debugs;
 using XYEngine.Scenes;
 
 namespace XYEngine;
@@ -15,13 +16,15 @@ public static class XY
 	public const VersionState VERSION_STATE = VersionState.Dev;
 	public static string version => Assembly.GetAssembly(typeof(XY)).GetName().Version.ToString();
 	
-	public static void LaunchGame<T>(string name, params Func<Task>[] loadingTasks) where T : Scene, new()
+	public static void LaunchGame<T>(string name, DebugState debugState, params Func<Task>[] loadingTasks) where T : Scene, new()
 	{
 		if (gameIsRunning)
 		{
 			InternalLog("XY", "You can only call 'LaunchGame' once!", TypeLog.Error);
 			return;
 		}
+		
+		XYDebug.state = debugState;
 		
 		string[] nativeLibsName = ["cimgui", "freetype", "glfw3", "soft_oal"];
 		foreach (var lib in nativeLibsName)
