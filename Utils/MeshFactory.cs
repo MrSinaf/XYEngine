@@ -61,7 +61,22 @@ public static class MeshFactory
 		return mesh;
 	}
 	
-	public static Mesh ChangeQuadUV(Mesh mesh, Region uvs, int index = 0)
+	public static Mesh SetQuadPosition(this Mesh mesh, Rect rect, int index = 0)
+	{
+		var iV = index * 4;
+		var pos00 = rect.position;
+		var pos11 = rect.position + rect.size;
+		
+		mesh.vertices[iV] = new Vector2(pos00.x, pos11.y);
+		mesh.vertices[iV + 1] = pos11;
+		mesh.vertices[iV + 2] = new Vector2(pos11.x, pos00.y);
+		mesh.vertices[iV + 3] = pos00;
+		
+		return mesh;
+	}
+	
+	
+	public static Mesh SetQuadUV(this Mesh mesh, Region uvs, int index = 0)
 	{
 		var iV = index * 4;
 		mesh.uvs[iV] = uvs.position00;
