@@ -13,7 +13,7 @@ public static class XY
 	
 	public enum VersionState { Release, Stable, Preview, Dev }
 	
-	public const VersionState VERSION_STATE = VersionState.Dev;
+	public const VersionState VERSION_STATE = VersionState.Release;
 	public static string version => Assembly.GetAssembly(typeof(XY)).GetName().Version.ToString();
 	
 	public static void LaunchGame<T>(string name, DebugState debugState, params Func<Task>[] loadingTasks) where T : Scene, new()
