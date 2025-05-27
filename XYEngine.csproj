@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <OutputType>Library</OutputType>
-        <AssemblyVersion>0.2.0.2</AssemblyVersion>
+        <AssemblyVersion>0.3</AssemblyVersion>
         <TargetFramework>net9</TargetFramework>
         <LangVersion>preview</LangVersion> <!-- Permettant d'utiliser C#14 -->
         <ImplicitUsings>enable</ImplicitUsings>
