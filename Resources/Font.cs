@@ -1,7 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Runtime.InteropServices;
 using FreeTypeSharp;
-using ImGuiNET;
 using XYEngine.Debugs;
 using XYEngine.Rendering;
 using XYEngine.Utils;
@@ -142,7 +141,7 @@ public unsafe class Font : IAsset, IImGuiRenderable
 			XYDebug.ShowProperty("size", fontBitmap.Key);
 			
 			var bitmap = fontBitmap.Value.bitmap;
-			ImGui.Image((IntPtr)bitmap.gTexture.handle, new System.Numerics.Vector2(bitmap.width, bitmap.height));
+			ImGui.Image((IntPtr)bitmap.gTexture.handle, new Vector2(bitmap.width, bitmap.height));
 		}
 	}
 }

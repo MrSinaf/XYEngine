@@ -1,5 +1,3 @@
-using System.Numerics;
-using ImGuiNET;
 using XYEngine.Inputs;
 using XYEngine.UI;
 
@@ -8,10 +6,12 @@ namespace XYEngine.Debugs.Windows;
 public class DebugCanvas : IDebugWindow
 {
 	public string name => "Canvas";
+	public Vector2 size => new (650, 300);
 	public bool visible { get; set; }
 	public bool notFirstDraw { get; set; }
 	
 	private static UIElement cElement;
+	private static int elementIndex;
 	
 	public void Create() { }
 	
@@ -19,6 +19,7 @@ public class DebugCanvas : IDebugWindow
 	{
 		var root = SceneManager.current.canvas.root;
 		
+		elementIndex = 0;
 		ImGui.Columns(2, "CanvasColumns");
 		if (!notFirstDraw)
 			ImGui.SetColumnWidth(0, 200);
@@ -82,7 +83,7 @@ public class DebugCanvas : IDebugWindow
 		
 		var clipMin = new Vector2(cElement.clipArea.position00.x, GameWindow.size.y - cElement.clipArea.position11.y);
 		var clipMax = new Vector2(cElement.clipArea.position11.x, GameWindow.size.y - cElement.clipArea.position00.y);
-		drawList.AddRect(XYDebug.ToSystem(clipMin), XYDebug.ToSystem(clipMax), ImGui.GetColorU32(new Vector4(0, 1, 1, 0.2F)), 0, ImDrawFlags.None, 1);
+		drawList.AddRect(clipMin, clipMax, ImGui.GetColorU32(new Vector4(0, 1, 1, 0.2F)), 0, ImDrawFlags.None, 1);
 		
 		var itemPos = new Vector2(cElement.realPosition.x, GameWindow.size.y - cElement.realPosition.y - cElement.scaledSize.y);
 		var itemSize = cElement.scaledSize;
@@ -90,12 +91,12 @@ public class DebugCanvas : IDebugWindow
 		
 		if (cElement.rotation == 0)
 		{
-			drawList.AddRect(XYDebug.ToSystem(itemPos), XYDebug.ToSystem(itemPos + itemSize), ImGui.GetColorU32(new Vector4(1, 0, 0, 1)), 0, ImDrawFlags.None, 1);
+			drawList.AddRect(itemPos, itemPos + itemSize, ImGui.GetColorU32(new Vector4(1, 0, 0, 1)), 0, ImDrawFlags.None, 1);
 		}
 		else
 		{
 			var radians = -cElement.rotation * (MathF.PI / 180f);
-			var points = new System.Numerics.Vector2[]
+			var points = new Vector2[]
 			{
 				new (itemPos.x, itemPos.y),
 				new (itemPos.x + itemSize.x, itemPos.y),
@@ -105,23 +106,26 @@ public class DebugCanvas : IDebugWindow
 			
 			for (var i = 0; i < 4; i++)
 			{
-				var dx = points[i].X - pivotPoint.x;
-				var dy = points[i].Y - pivotPoint.y;
-				points[i] = new System.Numerics.Vector2(pivotPoint.x + dx * MathF.Cos(radians) - dy * MathF.Sin(radians),
-														pivotPoint.y + dx * MathF.Sin(radians) + dy * MathF.Cos(radians));
+				var dx = points[i].x - pivotPoint.x;
+				var dy = points[i].y - pivotPoint.y;
+				points[i] = new Vector2(pivotPoint.x + dx * MathF.Cos(radians) - dy * MathF.Sin(radians),
+										pivotPoint.y + dx * MathF.Sin(radians) + dy * MathF.Cos(radians));
 			}
 			
 			drawList.AddPolyline(ref points[0], 4, ImGui.GetColorU32(new Vector4(1, 0, 0, 1)), ImDrawFlags.Closed, 1);
 		}
-		drawList.AddCircleFilled(XYDebug.ToSystem(pivotPoint), 1.5f, ImGui.GetColorU32(new Vector4(0, 1, 0, 1)));
+		drawList.AddCircleFilled(pivotPoint, 1.5f, ImGui.GetColorU32(new Vector4(0, 1, 0, 1)));
 	}
 	
 	private static void ShowChildrenTree(UIElement element)
 	{
 		if (element == cElement)
 			ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0, 0.7F, 0, 1));
+		ImGui.PushID(elementIndex++);
 		var nodeOpen = ImGui.TreeNodeEx(string.IsNullOrEmpty(element.name) ? element.GetType().Name : $"{element.name} [{element.GetType().Name}]",
 										element.childrenArray.Length == 0 ? ImGuiTreeNodeFlags.Leaf : ImGuiTreeNodeFlags.None | ImGuiTreeNodeFlags.OpenOnArrow);
+		ImGui.PopID();
+		
 		if (element == cElement)
 			ImGui.PopStyleColor();
 		

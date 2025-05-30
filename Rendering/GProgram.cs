@@ -9,6 +9,7 @@ public class GProgram : IDisposable
 	private static uint? currentHandle;
 	
 	private readonly Dictionary<string, int> uniformLocations = [];
+	private readonly Dictionary<string, int> attribLocations = [];
 	public readonly uint handle = gl.CreateProgram();
 	
 	public bool isDisposed { get; protected set; }
@@ -168,13 +169,23 @@ public class GProgram : IDisposable
 		return list.ToArray();
 	}
 	
-	private bool GetUniformLocation(string name, out int location)
+	public bool GetUniformLocation(string name, out int location)
 	{
 		if (uniformLocations.TryGetValue(name, out location))
 			return location != -1;
 		
 		location = gl.GetUniformLocation(handle, name);
 		uniformLocations[name] = location;
+		return location != -1;
+	}
+	
+	public bool GetAttribLocation(string name, out int location)
+	{
+		if (attribLocations.TryGetValue(name, out location))
+			return location != -1;
+		
+		location = gl.GetAttribLocation(handle, name);
+		attribLocations[name] = location;
 		return location != -1;
 	}
 	
