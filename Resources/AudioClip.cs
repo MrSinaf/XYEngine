@@ -1,5 +1,4 @@
-﻿using ImGuiNET;
-using NAudio.Wave;
+﻿using NAudio.Wave;
 using NVorbis;
 using Silk.NET.OpenAL;
 using XYEngine.Debugs;
@@ -197,5 +196,4 @@ public class AudioClip : IAsset, IImGuiRenderable
 			currentTime = 0;
 		}
 	}
-
 }

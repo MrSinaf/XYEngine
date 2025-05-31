@@ -1,11 +1,5 @@
-using System.Numerics;
 using System.Reflection;
 using System.Text.Json;
-using ImGuiNET;
-using Silk.NET.Input;
-using Silk.NET.OpenGL;
-using Silk.NET.OpenGL.Extensions.ImGui;
-using Silk.NET.Windowing;
 using XYEngine.Debugs.Windows;
 using XYEngine.Inputs;
 using Key = XYEngine.Inputs.Key;
@@ -20,15 +14,16 @@ public static class XYDebug
 	
 	private static IDebugWindow[] debugWindows;
 	private static ImGuiController imGuiController;
-	private static bool showMainMenuBar;
+	private static bool showMainMenuBar = true;
 	
-	internal static void Load(GL gl, IView view, IInputContext input)
+	internal static void Load()
 	{
 		if (state == DebugState.None)
 			return;
 		
 		debugWindows = [new DebugAssets(), new DebugCanvas()];
-		imGuiController = new ImGuiController(gl, view, input);
+		imGuiController = new ImGuiController();
+		
 		var assembly = Assembly.GetExecutingAssembly();
 		using var stream = assembly.GetManifestResourceStream("XYEngine.assets.imgui_style.json");
 		
@@ -52,10 +47,8 @@ public static class XYDebug
 		style.WindowBorderSize = 0;
 		style.ChildBorderSize = 0;
 		style.PopupBorderSize = 0;
-		style.WindowTitleAlign = new System.Numerics.Vector2(0.5F, 0.5F);
+		style.WindowTitleAlign = new Vector2(0.5F, 0.5F);
 		style.WindowMenuButtonPosition = ImGuiDir.None;
-		
-		ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.DockingEnable;
 		
 		foreach (var debugWindow in debugWindows)
 			debugWindow.Create();
@@ -133,6 +126,7 @@ public static class XYDebug
 			{
 				var visible = window.visible;
 				
+				ImGui.SetNextWindowSize(window.size, ImGuiCond.Once);
 				ImGui.Begin(window.name, ref visible);
 				window.Render();
 				ImGui.End();
@@ -173,9 +167,9 @@ public static class XYDebug
 		}
 		else if (type == typeof(Vector2))
 		{
-			var value = ToSystem((Vector2)property);
+			var value = (Vector2)property;
 			if (ImGui.DragFloat2($"##{id}", ref value, 0.1F))
-				property = ToXY(value);
+				property = value;
 		}
 		else if (type == typeof(Vector2Int))
 		{
@@ -189,7 +183,7 @@ public static class XYDebug
 			var region = (Region)property;
 			var value = new Vector4(region.position00.x, region.position00.y, region.position11.x, region.position11.y);
 			if (ImGui.DragFloat4($"##{id}", ref value, 1))
-				property = new Region(value.X, value.Y, value.Z, value.W);
+				property = new Region(value.x, value.y, value.z, value.w);
 		}
 		else if (type == typeof(RegionInt))
 		{
@@ -203,7 +197,7 @@ public static class XYDebug
 			var region = (Rect)property;
 			var value = new Vector4(region.position.x, region.position.y, region.size.x, region.size.y);
 			if (ImGui.DragFloat4($"##{id}", ref value, 0.1F))
-				property = new Rect(value.X, value.Y, value.Z, value.W);
+				property = new Rect(value.x, value.y, value.z, value.w);
 		}
 		else if (type == typeof(RectInt))
 		{
@@ -234,7 +228,7 @@ public static class XYDebug
 			if (ImGui.BeginPopup($"colorPicker_{id}"))
 			{
 				if (ImGui.ColorPicker4($"##picker_{id}", ref value))
-					property = new Color((byte)(value.X * 255), (byte)(value.Y * 255), (byte)(value.Z * 255), (byte)(value.W * 255));
+					property = new Color((byte)(value.x * 255), (byte)(value.y * 255), (byte)(value.z * 255), (byte)(value.w * 255));
 				
 				ImGui.EndPopup();
 			}
@@ -242,10 +236,6 @@ public static class XYDebug
 		
 		return property;
 	}
-	
-	public static System.Numerics.Vector2 ToSystem(Vector2 value) => new (value.x, value.y);
-	
-	public static Vector2 ToXY(System.Numerics.Vector2 value) => new (value.X, value.Y);
 	
 	private static void AdapteRootCanvasSize()
 	{

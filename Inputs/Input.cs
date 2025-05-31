@@ -1,10 +1,12 @@
-﻿using Silk.NET.Input;
+﻿using Silk.NET.GLFW;
+using Silk.NET.Input;
 
 namespace XYEngine.Inputs;
 
 public static class Input
 {
 	public static Vector2 mousePosition { get; private set; }
+	internal static IInputContext context { get; private set; }
 	
 	public static event Action<Key> keyDown = delegate { };
 	public static event Action<Key> keyUp = delegate { };
@@ -24,8 +26,18 @@ public static class Input
 	
 	internal static void Initialize(IInputContext context)
 	{
+		Input.context = context;
 		keyboard = context.Keyboards[0];
 		mouse = context.Mice[0];
+		
+		var window = GameWindow.GetWindow().Native?.Glfw;
+		if (window.HasValue)
+		{
+			unsafe
+			{
+				Glfw.GetApi().SetCharCallback((WindowHandle*)window.Value, OnCharacterReceived);
+			}
+		}
 		
 		keyboard.KeyDown += (_, key, _) =>
 		{
@@ -72,6 +84,8 @@ public static class Input
 		
 		currentMouseButtons.Clear();
 	}
+	
+	private static unsafe void OnCharacterReceived(WindowHandle* window, uint codepoint) => charDown((char)codepoint);
 	
 	public static bool IsKeyHeldDown(Key key) => keyboard.IsKeyPressed((Silk.NET.Input.Key)key);
 	public static bool IsKeyPressed(Key key) => !previousKeys.Contains(key) && currentKeys.Contains(key);

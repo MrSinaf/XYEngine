@@ -1,7 +1,5 @@
-﻿using System.Numerics;
-using System.Text;
+﻿using System.Text;
 using System.Text.RegularExpressions;
-using ImGuiNET;
 using XYEngine.Debugs;
 using XYEngine.Rendering;
 
@@ -18,6 +16,18 @@ public class Shader : IAsset, IImGuiRenderable
 	
 	public GProgram gProgram;
 	public ShaderConfig config { get; private set; }
+	
+	public Shader() { }
+	
+	public Shader(string vertexShader, string fragmentShader)
+	{
+		GCommandQueue.Enqueue(() =>
+		{
+			gProgram = new GProgram();
+			gProgram.Compile(OPENGL_VERSION + "\n" + vertexShader, OPENGL_VERSION + "\n" + fragmentShader);
+		});
+		shaders.Add(this);
+	}
 	
 	void IAsset.Load(AssetProperty property)
 	{

@@ -1,12 +1,11 @@
-using System.Numerics;
 using System.Reflection;
-using ImGuiNET;
 
 namespace XYEngine.Debugs.Windows;
 
 public class DebugAssets : IDebugWindow
 {
 	public string name => "Assets";
+	public Vector2 size => new (650, 300);
 	public bool visible { get; set; }
 	public bool notFirstDraw { get; set; }
 	
@@ -95,7 +94,6 @@ public class DebugAssets : IDebugWindow
 		}
 		
 		RenderTree(root, "");
-		ImGui.TreePop();
 		
 		void RenderTree(Dictionary<string, object> tree, string parentPath)
 		{

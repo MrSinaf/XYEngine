@@ -1,7 +1,5 @@
 ﻿using System.Reflection;
-using ImGuiNET;
 using Silk.NET.Core;
-using Silk.NET.GLFW;
 using Silk.NET.Input;
 using Silk.NET.Maths;
 using Silk.NET.OpenGL;
@@ -84,7 +82,9 @@ public class GameWindow
 	
 	public static void SetBackgroundColor(Color color) => Graphics.SetBackgroundColor(color);
 	
-	private unsafe void Load()
+	internal static IWindow GetWindow() => m.window;
+	
+	private void Load()
 	{
 		ImageResult result;
 		if (File.Exists("icon.png"))
@@ -110,25 +110,8 @@ public class GameWindow
 		Input.Initialize(input);
 		Audio.Initialize();
 		
-		// TODO > (￣_,￣ )
-		if (window.Native?.Glfw.HasValue == true)
-		{
-			var glfw = Glfw.GetApi();
-			var glfwPtr = window.Native?.Glfw.Value;
-			
-			glfw.SetCharCallback((WindowHandle*)glfwPtr, OnCharacterReceived);
-		}
-		
-		XYDebug.Load(gl, window, input);
 		SceneManager.SetCurrentScene<SplashScreen>();
-	}
-	
-	private unsafe void OnCharacterReceived(WindowHandle* window, uint codepoint)
-	{
-		if (XYDebug.state != DebugState.None)
-			ImGui.GetIO().AddInputCharacter((char)codepoint);
-		var character = char.ConvertFromUtf32((int)codepoint)[0];
-		Input.charDown(character);
+		XYDebug.Load();
 	}
 	
 	private static void Update(double delta)
@@ -137,7 +120,6 @@ public class GameWindow
 		try
 		{
 			SceneManager.Update();
-			XYDebug.Update();
 		}
 		catch (Exception e)
 		{
@@ -146,12 +128,12 @@ public class GameWindow
 		
 		UIEvent.Update();
 		Input.Update();
+		XYDebug.Update();
 	}
 	
 	private static void Render(double delta)
 	{
 		GCommandQueue.ExecuteAll();
-		
 		SceneManager.Render();
 		XYDebug.Render();
 	}

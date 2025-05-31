@@ -1,5 +1,4 @@
-﻿using ImGuiNET;
-using StbImageSharp;
+﻿using StbImageSharp;
 using XYEngine.Debugs;
 using XYEngine.Rendering;
 
@@ -80,8 +79,8 @@ public class Texture2D : Texture, IAsset, IImGuiRenderable
 		ImGui.Spacing();
 		
 		var ratio = (float)height / width;
-		var availableSpace = ImGui.GetContentRegionAvail().X;
-		ImGui.Image((IntPtr)gTexture.handle, new System.Numerics.Vector2(availableSpace, (int)(availableSpace * ratio)));
+		var availableSpace = ImGui.GetContentRegionAvail().x;
+		ImGui.Image((IntPtr)gTexture.handle, new Vector2(availableSpace, (int)(availableSpace * ratio)));
 	}
 }
 
