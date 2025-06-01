@@ -1,6 +1,5 @@
 ﻿using System.Reflection;
 using System.Runtime.InteropServices;
-using XYEngine.Debugs;
 using XYEngine.Scenes;
 
 namespace XYEngine;
@@ -10,13 +9,9 @@ public enum TypeLog { Normal, Info, Warning, Error }
 public static class XY
 {
 	private static bool gameIsRunning;
+	public static string version { get; private set; }
 	
-	public enum VersionState { Release, Stable, Preview, Dev }
-	
-	public const VersionState VERSION_STATE = VersionState.Dev;
-	public static string version => Assembly.GetAssembly(typeof(XY)).GetName().Version.ToString();
-	
-	public static void LaunchGame<T>(string name, DebugState debugState, params Func<Task>[] loadingTasks) where T : Scene, new()
+	public static void LaunchGame<T>(string name, params Func<Task>[] loadingTasks) where T : Scene, new()
 	{
 		if (gameIsRunning)
 		{
@@ -24,14 +19,22 @@ public static class XY
 			return;
 		}
 		
-		XYDebug.state = debugState;
-		
 		string[] nativeLibsName = ["cimgui", "freetype", "glfw3", "soft_oal"];
 		foreach (var lib in nativeLibsName)
 			ResolveNativeLibrary(lib);
 		
 		AppDomain.CurrentDomain.AssemblyResolve += ResolveAssembly;
-		InternalLog($"  XYEngine v{version} - {VERSION_STATE}", TypeLog.Info);
+		
+		var informationalVersion = Assembly.GetAssembly(typeof(XY)).GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion.Split('+')[0];
+		var versionDetails = informationalVersion.Split('-');
+		version = versionDetails[0] + versionDetails.Length switch
+		{
+			2 => $" - [{versionDetails[1]}]",
+			3 => $" - [{versionDetails[1]} {versionDetails[2]}]",
+			_ => string.Empty
+		};
+		
+		InternalLog($"  XYEngine v{version}", TypeLog.Info);
 		
 		SplashScreen.startScene = typeof(T);
 		SplashScreen.loadingTasks = loadingTasks;
@@ -98,5 +101,11 @@ public static class XY
 		
 		if (File.Exists(nativeLibPath))
 			NativeLibrary.Load(nativeLibPath);
+		else
+		{
+			nativeLibPath = Path.Combine(AppContext.BaseDirectory, "packages", string.Format(nativeLibExtension, libraryName));
+			if (File.Exists(nativeLibPath))
+				NativeLibrary.Load(nativeLibPath);
+		}
 	}
 }

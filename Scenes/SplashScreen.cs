@@ -65,7 +65,7 @@ internal class SplashScreen : Scene
 					throw new Exception("Loading task failed");
 			}
 			
-			await Task.Delay(1000);
+			await Task.Delay(2000);
 		}).ContinueWith(task =>
 		{
 			if (task.IsCompletedSuccessfully)
@@ -82,7 +82,7 @@ internal class SplashScreen : Scene
 	{
 		root.AddChild(new Image(backMaterial) { anchorMax = Vector2.one });
 		root.AddChild(new Image(xyTexture) { pivotAndAnchors = new Vector2(0.5F), scale = new Vector2(15) });
-		root.AddChild(new Label($"v{XY.version} [{XY.VERSION_STATE}]") { position = new Vector2Int(20, 15), tint = Color.green });
+		root.AddChild(new Label($"v{XY.version}") { position = new Vector2Int(20, 15), tint = Color.green });
 		root.AddChild(progressBar);
 		root.AddChild(errorLabel);
 	}

@@ -30,59 +30,54 @@ moteur vise à simplifier l'intégration de logiques procédurales tout en perme
 
 ## 🖱️〉Compatibilités
 
-XYEngine a été créé et utilisé uniquement sur Windows x64. Théoriquement, il est possible de l'utiliser sur Linux, car les dépendances sont multiplateformes.
+XYEngine a été créé et utilisé uniquement sur Windows x64. Théoriquement, il est possible de l'utiliser sur Linux et Mac.
 
 Il reste nécessaire d'avoir [.NET 9 d'installé](https://dotnet.microsoft.com/fr-fr/download/dotnet) pour pouvoir utiliser XYEngine.
 
 ## 🚀〉Installation
 
-1. **Téléchargez** [la dernière version](https://github.com/MrSinaf/XYEngine/releases/latest/download/XYEngine.zip) de XYEngine.
-2. **Décompressez** le fichier `.zip` et placer le dossier `/XYEngine` dans l'emplacement de votre choix.
-
-## 🌠〉Utilisation
-
 1. **Créez un projet C#** .NET 9, en utilisant le modèle "Console".
-2. **Configurez** votre fichier `.csproj` en y ajoutant :
+2. **Ajoutez la référence** vers XYEngine :
+    - Via votre IDE avec la recherche nuget : `XYEngine`
+    - Via votre terminal : `dotnet add package XYEngine`
+3. **Configurez votre fichier `.csproj`** en y ajoutant :
 
 ```xml
 <!-- Begin XYEngine integration -->
-<PropertyGroup>
-    <XYEnginePath>Chemin/vers/les/fichiers/de/XYEngine</XYEnginePath>
-</PropertyGroup>
 <ItemGroup>
-    <None Update="assets\**\*" CopyToOutputDirectory="Always"/>
-    <Reference Include="XYEngine" HintPath="$(XYEnginePath)\XYEngine.dll"/>
-    <XYEngineFiles Include="$(XYEnginePath)\**\*" Visible="false"/>
+   <None Update="assets\**\*" CopyToOutputDirectory="Always"/>
 </ItemGroup>
-<Target Name="CopyXYEngineFiles" AfterTargets="Build">
-    <Copy SourceFiles="@(XYEngineFiles)" DestinationFolder="$(OutputPath)%(RecursiveDir)" SkipUnchangedFiles="true"/>
-    <Delete Condition="'$(Configuration)' == 'Release'" Files="$(OutputPath)XYEngine.pdb"/>
+<Target Name="MoveDLLsInPackages" AfterTargets="Build">
+    <ItemGroup>
+        <LocalDlls Include="$(OutDir)*.dll" Exclude="$(OutDir)$(ProjectName).dll;$(OutDir)XYEngine.dll"/>
+    </ItemGroup>
+    <Move SourceFiles="@(LocalDlls)" DestinationFolder="$(OutDir)packages\%(RecursiveDir)"/>
 </Target>
 <!-- End XYEngine integration -->
 ```
 
-> **Note** : Remplacer `Chemin/vers/les/fichiers/de/XYEngine` par le chemin absolu ou relatif où vous avez placé le dossier XYEngine.
+> Permet d'ajouter `assets` à votre *build* et de ranger les dépendances de *votre projet* et *XYEngine* dans un dossier `packages`.
 
-3. **Créez une nouvelle class** héritant de la class 'Scene' :
+4. **Créez une nouvelle class** héritant de la class 'Scene' :
 
 ```csharp
 public class MyFirstScene : Scene 
 {
-    // A vous d'ajouter les logiques de votre scène ici.
+    // Scripts pour votre scène...
 }
 ```
 
-4. **Lancez votre jeu** depuis la class `Program` :
+5. **Lancez votre jeu** depuis la class `Program` :
 
 ```csharp
 // Lancez votre jeu en référençant le type de votre scène. (Cette scène sera la première à être affiché.)
 XYEngine.XY.LaunchGame<MyFirstScene>("Nom de mon projet");
 ```
 
-5. **Exécutez le projet**, si tout est correctement configuré, le moteur devrait se lancer en affichant un SplashScreen, puis un écran noir représentant votre scène.
+6. **Exécutez le projet**, si tout est correctement configuré, le moteur devrait se lancer en affichant un SplashScreen, puis un écran noir représentant votre scène.
 
 > Un template prêt à l'emploi pour XYEngine est disponible [ici](https://github.com/MrSinaf/XYEngine.Template).
 
 ## 🌐〉Site web
 
-Découvrez la page dédiée à ce moteur de jeu sur [mon site web](https://sinafproduction.xyz/projects/xyengine).
+Pour plus d'informations sur le fonctionnement du moteur découvrez sa page dédiée sur [mon site web](https://sinafproduction.xyz/projects/xyengine).
