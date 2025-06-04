@@ -1,31 +1,30 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace XYEngine.Debugs
+namespace XYEngine.Debugs;
+
+public struct ImGuiStoragePair
 {
-    public struct ImGuiStoragePair
-    {
-        public uint Key;
-        public UnionValue Value;
-    }
+    public uint key;
+    public UnionValue value;
+}
 
-    public unsafe struct ImGuiStoragePairPtr
-    {
-        public ImGuiStoragePair* NativePtr { get; }
-        public ImGuiStoragePairPtr(ImGuiStoragePair* nativePtr) => NativePtr = nativePtr;
-        public ImGuiStoragePairPtr(IntPtr nativePtr) => NativePtr = (ImGuiStoragePair*)nativePtr;
-        public static implicit operator ImGuiStoragePairPtr(ImGuiStoragePair* nativePtr) => new ImGuiStoragePairPtr(nativePtr);
-        public static implicit operator ImGuiStoragePair*(ImGuiStoragePairPtr wrappedPtr) => wrappedPtr.NativePtr;
-        public static implicit operator ImGuiStoragePairPtr(IntPtr nativePtr) => new ImGuiStoragePairPtr(nativePtr);
-    }
+public readonly unsafe struct ImGuiStoragePairPtr(ImGuiStoragePair* nativePtr)
+{
+    public ImGuiStoragePair* nativePtr { get; } = nativePtr;
+    public ImGuiStoragePairPtr(IntPtr nativePtr) : this((ImGuiStoragePair*)nativePtr) { }
+    
+    public static implicit operator ImGuiStoragePairPtr(ImGuiStoragePair* nativePtr) => new (nativePtr);
+    public static implicit operator ImGuiStoragePair*(ImGuiStoragePairPtr wrappedPtr) => wrappedPtr.nativePtr;
+    public static implicit operator ImGuiStoragePairPtr(IntPtr nativePtr) => new (nativePtr);
+}
 
-    [StructLayout(LayoutKind.Explicit)]
-    public struct UnionValue
-    {
-        [FieldOffset(0)]
-        public int ValueI32;
-        [FieldOffset(0)]
-        public float ValueF32;
-        [FieldOffset(0)]
-        public IntPtr ValuePtr;
-    }
+[StructLayout(LayoutKind.Explicit)]
+public struct UnionValue
+{
+    [FieldOffset(0)]
+    public int valueI32;
+    [FieldOffset(0)]
+    public float valueF32;
+    [FieldOffset(0)]
+    public IntPtr valuePtr;
 }

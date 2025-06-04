@@ -1,67 +1,43 @@
 using System.Reflection;
-using System.Text.Json;
 using XYEngine.Debugs.Windows;
 using XYEngine.Inputs;
 using Key = XYEngine.Inputs.Key;
 
 namespace XYEngine.Debugs;
 
-public enum DebugState { Full, Limited, None }
-
 public static class XYDebug
 {
-	public static DebugState state { get; set; } = DebugState.Full;
+	public static bool active { get => field && isLoaded; set; }
 	
-	private static IDebugWindow[] debugWindows;
+	private static bool isLoaded;
+	private static DebugWindow[] debugWindows;
 	private static ImGuiController imGuiController;
 	private static bool showMainMenuBar = true;
 	
+	public static event Action onImGuiRender = delegate { };
+	
 	internal static void Load()
 	{
-		if (state == DebugState.None)
-			return;
+		isLoaded = true;
+		if (!active) return;
 		
-		debugWindows = [new DebugAssets(), new DebugCanvas()];
 		imGuiController = new ImGuiController();
 		
 		var assembly = Assembly.GetExecutingAssembly();
 		using var stream = assembly.GetManifestResourceStream("XYEngine.assets.imgui_style.json");
 		
-		var style = ImGui.GetStyle();
-		if (stream != null)
-		{
-			using var reader = new StreamReader(stream);
-			var json = reader.ReadToEnd();
-			var colorArray = JsonSerializer.Deserialize<float[][]>(json);
-			
-			if (colorArray != null)
-			{
-				var colors = style.Colors;
-				for (var i = 0; i < colorArray.Length && i < colors.Count; i++)
-					colors[i] = new Vector4(colorArray[i][0], colorArray[i][1], colorArray[i][2], colorArray[i][3]);
-			}
-		}
-		
-		style.WindowRounding = 8;
-		style.FrameRounding = 3;
-		style.WindowBorderSize = 0;
-		style.ChildBorderSize = 0;
-		style.PopupBorderSize = 0;
-		style.WindowTitleAlign = new Vector2(0.5F, 0.5F);
-		style.WindowMenuButtonPosition = ImGuiDir.None;
-		
-		foreach (var debugWindow in debugWindows)
-			debugWindow.Create();
+		ApplyXYStyle();
+		debugWindows = [new DebugAssets(), new DebugObjects(), new DebugCanvas(), new DebugPerformance()];
+		ImGui.GetIO().ConfigErrorRecoveryEnableAssert = false;
 	}
 	
 	internal static void Update()
 	{
-		if (state == DebugState.None)
-			return;
+		if (!isLoaded) return;
 		
 		imGuiController.Update(Time.delta);
 		
-		if (Input.IsKeyHeldDown(Key.ControlLeft) && Input.IsKeyPressed(Key.F1))
+		if (Input.IsKeyPressed(Key.F1) && Input.IsKeyHeldDown(Key.ControlLeft))
 		{
 			showMainMenuBar = !showMainMenuBar;
 			AdapteRootCanvasSize();
@@ -70,12 +46,10 @@ public static class XYDebug
 	
 	internal static void Render()
 	{
-		if (state == DebugState.None)
-			return;
+		if (!isLoaded) return;
 		
-		if (showMainMenuBar)
+		if (showMainMenuBar && ImGui.BeginMainMenuBar())
 		{
-			ImGui.BeginMainMenuBar();
 			if (ImGui.BeginMenu("XY"))
 			{
 				if (ImGui.MenuItem("Reload Scene"))
@@ -109,12 +83,14 @@ public static class XYDebug
 				ImGui.EndMenu();
 			}
 			
-			if (ImGui.BeginMenu("Windows"))
+			foreach (var debugWindow in debugWindows)
 			{
-				foreach (var debugWindow in debugWindows)
+				if (ImGui.BeginMenu(debugWindow.menuItem))
+				{
 					if (ImGui.MenuItem(debugWindow.name))
 						debugWindow.visible = true;
-				ImGui.EndMenu();
+					ImGui.EndMenu();
+				}
 			}
 			
 			ImGui.EndMainMenuBar();
@@ -127,13 +103,17 @@ public static class XYDebug
 				var visible = window.visible;
 				
 				ImGui.SetNextWindowSize(window.size, ImGuiCond.Once);
-				ImGui.Begin(window.name, ref visible);
-				window.Render();
-				ImGui.End();
+				if (ImGui.Begin(window.name, ref visible, window.flags))
+				{
+					window.Render();
+					ImGui.End();
+				}
 				
 				window.visible = visible;
 				window.notFirstDraw = true;
 			}
+		
+		onImGuiRender();
 		ImGui.PopStyleVar();
 		
 		imGuiController.Render();
@@ -146,7 +126,11 @@ public static class XYDebug
 		ImGui.TextColored(new Vector4(0.5f, 0.8f, 0.3f, 1.0f), property.ToString());
 	}
 	
-	public static bool IsCompatibleInput(Type type) => type == typeof(string) || type == typeof(bool) || type == typeof(Vector2) || type == typeof(Vector2Int) ||
+	private static void AdapteRootCanvasSize()
+		=> SceneManager.current.canvas.root.UpdateSize(Graphics.resolution - (showMainMenuBar ? new Vector2Int(0, 18) : Vector2Int.zero));
+	
+	public static bool IsCompatibleInput(Type type) => type == typeof(string) || type == typeof(bool) || type == typeof(Vector2) || type == typeof(Vector2Int)
+													   ||
 													   type == typeof(RegionInt) || type == typeof(Region) || type == typeof(RectInt) || type == typeof(Rect) ||
 													   type == typeof(float) || type == typeof(int) || type == typeof(Color);
 	
@@ -237,8 +221,75 @@ public static class XYDebug
 		return property;
 	}
 	
-	private static void AdapteRootCanvasSize()
+	private static void ApplyXYStyle()
 	{
-		SceneManager.current.canvas.root.UpdateSize(Graphics.resolution - (showMainMenuBar ? new Vector2Int(0, 18) : Vector2Int.zero));
+		var style = ImGui.GetStyle();
+		var colors = style.Colors;
+		colors[(int)ImGuiCol.Text] = new Vector4(1.00f, 1.00f, 1.00f, 1.00f);
+		colors[(int)ImGuiCol.TextDisabled] = new Vector4(0.50f, 0.50f, 0.50f, 1.00f);
+		colors[(int)ImGuiCol.WindowBg] = new Vector4(0.07f, 0.14f, 0.20f, 1.00f);
+		colors[(int)ImGuiCol.ChildBg] = new Vector4(0.00f, 0.00f, 0.00f, 0.00f);
+		colors[(int)ImGuiCol.PopupBg] = new Vector4(0.08f, 0.08f, 0.08f, 0.94f);
+		colors[(int)ImGuiCol.Border] = new Vector4(0.43f, 0.43f, 0.50f, 0.50f);
+		colors[(int)ImGuiCol.BorderShadow] = new Vector4(0.00f, 0.00f, 0.00f, 0.00f);
+		colors[(int)ImGuiCol.FrameBg] = new Vector4(0.09f, 0.17f, 0.24f, 1.00f);
+		colors[(int)ImGuiCol.FrameBgHovered] = new Vector4(0.26f, 0.59f, 0.98f, 0.40f);
+		colors[(int)ImGuiCol.FrameBgActive] = new Vector4(0.26f, 0.59f, 0.98f, 0.67f);
+		colors[(int)ImGuiCol.TitleBg] = new Vector4(0.18f, 0.67f, 0.39f, 0.49f);
+		colors[(int)ImGuiCol.TitleBgActive] = new Vector4(0.18f, 0.67f, 0.39f, 1.00f);
+		colors[(int)ImGuiCol.TitleBgCollapsed] = new Vector4(0.00f, 0.00f, 0.00f, 0.51f);
+		colors[(int)ImGuiCol.MenuBarBg] = new Vector4(0.09f, 0.17f, 0.24f, 1.00f);
+		colors[(int)ImGuiCol.ScrollbarBg] = new Vector4(0.02f, 0.02f, 0.02f, 0.53f);
+		colors[(int)ImGuiCol.ScrollbarGrab] = new Vector4(0.31f, 0.31f, 0.31f, 1.00f);
+		colors[(int)ImGuiCol.ScrollbarGrabHovered] = new Vector4(0.41f, 0.41f, 0.41f, 1.00f);
+		colors[(int)ImGuiCol.ScrollbarGrabActive] = new Vector4(0.51f, 0.51f, 0.51f, 1.00f);
+		colors[(int)ImGuiCol.CheckMark] = new Vector4(0.18f, 0.67f, 0.39f, 1.00f);
+		colors[(int)ImGuiCol.SliderGrab] = new Vector4(0.18f, 0.67f, 0.39f, 1.00f);
+		colors[(int)ImGuiCol.SliderGrabActive] = new Vector4(0.15f, 0.75f, 0.41f, 1.00f);
+		colors[(int)ImGuiCol.Button] = new Vector4(0.18f, 0.67f, 0.39f, 1.00f);
+		colors[(int)ImGuiCol.ButtonHovered] = new Vector4(0.13f, 0.56f, 0.31f, 1.00f);
+		colors[(int)ImGuiCol.ButtonActive] = new Vector4(0.06f, 0.53f, 0.98f, 1.00f);
+		colors[(int)ImGuiCol.Header] = new Vector4(0.15f, 0.23f, 0.29f, 1.00f);
+		colors[(int)ImGuiCol.HeaderHovered] = new Vector4(0.13f, 0.55f, 0.31f, 1.00f);
+		colors[(int)ImGuiCol.HeaderActive] = new Vector4(0.18f, 0.67f, 0.39f, 1.00f);
+		colors[(int)ImGuiCol.Separator] = new Vector4(0.18f, 0.67f, 0.39f, 1.00f);
+		colors[(int)ImGuiCol.SeparatorHovered] = new Vector4(0.11f, 0.52f, 0.29f, 1.00f);
+		colors[(int)ImGuiCol.SeparatorActive] = new Vector4(0.15f, 0.81f, 0.43f, 1.00f);
+		colors[(int)ImGuiCol.ResizeGrip] = new Vector4(0.26f, 0.59f, 0.98f, 0.20f);
+		colors[(int)ImGuiCol.ResizeGripHovered] = new Vector4(0.26f, 0.59f, 0.98f, 0.67f);
+		colors[(int)ImGuiCol.ResizeGripActive] = new Vector4(0.26f, 0.59f, 0.98f, 0.95f);
+		colors[(int)ImGuiCol.TabHovered] = new Vector4(0.09f, 0.17f, 0.26f, 1.00f);
+		colors[(int)ImGuiCol.Tab] = new Vector4(0.14f, 0.24f, 0.41f, 1.00f);
+		colors[(int)ImGuiCol.TabSelected] = new Vector4(0.15f, 0.25f, 0.34f, 1.00f);
+		colors[(int)ImGuiCol.TabSelectedOverline] = new Vector4(0.07f, 0.10f, 0.15f, 0.97f);
+		colors[(int)ImGuiCol.TabDimmed] = new Vector4(0.14f, 0.26f, 0.42f, 1.00f);
+		colors[(int)ImGuiCol.TabDimmedSelected] = new Vector4(0.15f, 0.96f, 0.01f, 0.20f);
+		colors[(int)ImGuiCol.TabDimmedSelectedOverline] = new Vector4(0.20f, 0.20f, 0.20f, 1.00f);
+		colors[(int)ImGuiCol.DockingPreview] = new Vector4(0.61f, 0.61f, 0.61f, 1.00f);
+		colors[(int)ImGuiCol.DockingEmptyBg] = new Vector4(1.00f, 0.43f, 0.35f, 1.00f);
+		colors[(int)ImGuiCol.PlotLines] = new Vector4(0.28f, 0.90f, 0.00f, 1.00f);
+		colors[(int)ImGuiCol.PlotLinesHovered] = new Vector4(0.00f, 1.00f, 0.22f, 1.00f);
+		colors[(int)ImGuiCol.PlotHistogram] = new Vector4(0.19f, 0.19f, 0.20f, 1.00f);
+		colors[(int)ImGuiCol.PlotHistogramHovered] = new Vector4(0.31f, 0.31f, 0.35f, 1.00f);
+		colors[(int)ImGuiCol.TableHeaderBg] = new Vector4(0.13f, 0.29f, 0.22f, 1.00f);
+		colors[(int)ImGuiCol.TableBorderStrong] = new Vector4(0.00f, 0.00f, 0.00f, 0.00f);
+		colors[(int)ImGuiCol.TableBorderLight] = new Vector4(0.00f, 0.00f, 0.00f, 0.06f);
+		colors[(int)ImGuiCol.TableRowBg] = new Vector4(0.00f, 0.00f, 0.00f, 0.35f);
+		colors[(int)ImGuiCol.TableRowBgAlt] = new Vector4(0.13f, 0.13f, 0.13f, 0.90f);
+		colors[(int)ImGuiCol.TextLink] = new Vector4(0.26f, 0.59f, 0.98f, 1.00f);
+		colors[(int)ImGuiCol.TextSelectedBg] = new Vector4(1.00f, 1.00f, 1.00f, 0.70f);
+		colors[(int)ImGuiCol.DragDropTarget] = new Vector4(0.80f, 0.80f, 0.80f, 0.20f);
+		colors[(int)ImGuiCol.NavCursor] = new Vector4(0.80f, 0.80f, 0.80f, 0.35f);
+		colors[(int)ImGuiCol.NavWindowingHighlight] = new Vector4(1.00f, 1.00f, 1.00f, 0.70f);
+		colors[(int)ImGuiCol.NavWindowingDimBg] = new Vector4(0.80f, 0.80f, 0.80f, 0.20f);
+		colors[(int)ImGuiCol.ModalWindowDimBg] = new Vector4(0.80f, 0.80f, 0.80f, 0.35f);
+		
+		style.WindowRounding = 8;
+		style.FrameRounding = 3;
+		style.WindowBorderSize = 0;
+		style.ChildBorderSize = 0;
+		style.PopupBorderSize = 0;
+		style.WindowTitleAlign = new Vector2(0.5F, 0.5F);
+		style.WindowMenuButtonPosition = ImGuiDir.None;
 	}
 }

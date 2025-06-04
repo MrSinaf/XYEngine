@@ -9,6 +9,7 @@ public class XYObject
 	public bool isActif => enable && !isDestroyed;
 	public bool canDraw => material != null && mesh is { isValid: true };
 	
+	public string name;
 	public Mesh mesh;
 	public Material material;
 	public int drawOrder;
@@ -63,7 +64,11 @@ public class XYObject
 	
 	#endregion
 	
-	public XYObject() => Scene.AddObject(this);
+	public XYObject()
+	{
+		name = GetType().Name;;
+		Scene.AddObject(this);
+	}
 	
 	protected internal virtual void Update() { }
 	protected virtual void Destroyed() { }

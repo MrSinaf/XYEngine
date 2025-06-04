@@ -1,29 +1,23 @@
 ﻿using System.Text;
 
-namespace XYEngine.Debugs
+namespace XYEngine.Debugs;
+
+public readonly unsafe struct NullTerminatedString(byte* data)
 {
-    public unsafe struct NullTerminatedString
+    public readonly byte* data = data;
+    
+    public override string ToString()
     {
-        public readonly byte* Data;
-
-        public NullTerminatedString(byte* data)
+        var length = 0;
+        var ptr = data;
+        while (*ptr != 0)
         {
-            Data = data;
+            length += 1;
+            ptr += 1;
         }
-
-        public override string ToString()
-        {
-            int length = 0;
-            byte* ptr = Data;
-            while (*ptr != 0)
-            {
-                length += 1;
-                ptr += 1;
-            }
-
-            return Encoding.ASCII.GetString(Data, length);
-        }
-
-        public static implicit operator string(NullTerminatedString nts) => nts.ToString();
+        
+        return Encoding.ASCII.GetString(data, length);
     }
+    
+    public static implicit operator string(NullTerminatedString nts) => nts.ToString();
 }

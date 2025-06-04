@@ -3,19 +3,18 @@ using XYEngine.UI;
 
 namespace XYEngine.Debugs.Windows;
 
-public class DebugCanvas : IDebugWindow
+internal class DebugCanvas : DebugWindow
 {
-	public string name => "Canvas";
-	public Vector2 size => new (650, 300);
-	public bool visible { get; set; }
-	public bool notFirstDraw { get; set; }
+	public override string name => "Canvas";
+	public override Vector2 size => new (650, 300);
+	public override ImGuiWindowFlags flags => ImGuiWindowFlags.None;
 	
 	private static UIElement cElement;
 	private static int elementIndex;
 	
 	public void Create() { }
 	
-	public void Render()
+	public override void Render()
 	{
 		var root = SceneManager.current.canvas.root;
 		

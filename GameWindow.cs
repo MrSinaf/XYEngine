@@ -30,7 +30,7 @@ public class GameWindow
 		window = Window.Create(WindowOptions.Default with
 		{
 			Title = name,
-			VSync = false,
+			VSync = true,
 			
 			// Initialisation des paramètres pour le SplashScreen :
 			WindowBorder = WindowBorder.Hidden,
@@ -127,8 +127,8 @@ public class GameWindow
 		}
 		
 		UIEvent.Update();
-		Input.Update();
 		XYDebug.Update();
+		Input.Update();
 	}
 	
 	private static void Render(double delta)

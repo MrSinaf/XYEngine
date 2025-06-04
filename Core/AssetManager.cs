@@ -8,8 +8,6 @@ public static class AssetManager
 	private static readonly Dictionary<string, AssetReference> cache = [];
 	private static readonly Dictionary<string, AssetReference> embeddedCache = [];
 	
-	internal static void ReloadEmbeddedAsset(string path, string sourcePath = null) { }
-	
 	internal static void ReloadAsset(string path, string sourcePath = null)
 	{
 		if (cache.TryGetValue(path, out var reference))

@@ -76,6 +76,21 @@ public class Texture2D : Texture, IAsset, IImGuiRenderable
 	public void OnImGuiRender()
 	{
 		XYDebug.ShowProperty("Dimensions", $"{size.x}x{size.y}");
+		
+		float sizeInBytes = size.x * size.y * 4;
+		string sizeText;
+		if (sizeInBytes < 1048576F)
+		{
+			var sizeInKo = sizeInBytes / 1024f;
+			sizeText = $"{sizeInKo:F2} Ko";
+		}
+		else
+		{
+			var sizeInMo = sizeInBytes / 1048576F;
+			sizeText = $"{sizeInMo:F2} Mo";
+		}
+		XYDebug.ShowProperty("Size", sizeText);
+		
 		ImGui.Spacing();
 		
 		var ratio = (float)height / width;

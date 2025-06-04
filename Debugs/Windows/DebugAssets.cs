@@ -2,23 +2,22 @@ using System.Reflection;
 
 namespace XYEngine.Debugs.Windows;
 
-public class DebugAssets : IDebugWindow
+internal class DebugAssets : DebugWindow
 {
-	public string name => "Assets";
-	public Vector2 size => new (650, 300);
-	public bool visible { get; set; }
-	public bool notFirstDraw { get; set; }
+	public override string name => "Assets";
+	public override Vector2 size => new (650, 300);
+	public override ImGuiWindowFlags flags => ImGuiWindowFlags.None;
 	
 	private static (string path, IAsset asset) selectedAsset;
 	private static Dictionary<string, AssetReference> cache;
 	
-	public void Create()
+	public DebugAssets()
 	{
 		var cacheField = typeof(AssetManager).GetField("cache", BindingFlags.NonPublic | BindingFlags.Static);
 		cache = cacheField?.GetValue(null) as Dictionary<string, AssetReference>;
 	}
 	
-	public void Render()
+	public override void Render()
 	{
 		ImGui.Columns(2, "AssetsColumns");
 		if (!notFirstDraw)

@@ -92,14 +92,14 @@ public class ImGuiController
 		Span<int> lastScissorBox = stackalloc int[4];
 		gl.GetInteger(GLEnum.ScissorBox, lastScissorBox);
 		
-		gl.GetInteger(GLEnum.BlendSrcRgb, out int lastBlendSrcRgb);
-		gl.GetInteger(GLEnum.BlendDstRgb, out int lastBlendDstRgb);
+		gl.GetInteger(GLEnum.BlendSrcRgb, out var lastBlendSrcRgb);
+		gl.GetInteger(GLEnum.BlendDstRgb, out var lastBlendDstRgb);
 		
-		gl.GetInteger(GLEnum.BlendSrcAlpha, out int lastBlendSrcAlpha);
-		gl.GetInteger(GLEnum.BlendDstAlpha, out int lastBlendDstAlpha);
+		gl.GetInteger(GLEnum.BlendSrcAlpha, out var lastBlendSrcAlpha);
+		gl.GetInteger(GLEnum.BlendDstAlpha, out var lastBlendDstAlpha);
 		
-		gl.GetInteger(GLEnum.BlendEquationRgb, out int lastBlendEquationRgb);
-		gl.GetInteger(GLEnum.BlendEquationAlpha, out int lastBlendEquationAlpha);
+		gl.GetInteger(GLEnum.BlendEquationRgb, out var lastBlendEquationRgb);
+		gl.GetInteger(GLEnum.BlendEquationAlpha, out var lastBlendEquationAlpha);
 		
 		var lastEnableBlend = gl.IsEnabled(GLEnum.Blend);
 		var lastEnableCullFace = gl.IsEnabled(GLEnum.CullFace);
