@@ -1,6 +1,6 @@
 ﻿namespace XYEngine;
 
-public struct Vector2(float x, float y) : IEquatable<Vector2>
+public struct Vector2(float x, float y) : IEquatable<Vector2>, ILerpable<Vector2>
 {
 	public const float EPSILON = 1e-5F;
 	
@@ -43,15 +43,15 @@ public struct Vector2(float x, float y) : IEquatable<Vector2>
 	public bool IsOutsideBounds(Vector2 min, Vector2 max) => x < min.x || x > max.x || y < min.y || y > max.y;
 	public bool IsInsideBounds(Vector2 min, Vector2 max) => x >= min.x && x <= max.x && y >= min.y && y <= max.y;
 	
-	public static Vector2 Lerp(Vector2 start, Vector2 end, float factor)
-	{
-		factor = Math.Clamp(factor, 0, 1);
-		return new Vector2(start.x + (end.x - start.x) * factor, start.y + (end.y - start.y) * factor);
-	}
 	
-	public static Vector2 Clamp(Vector2 value, Vector2 min, Vector2 max) => new (
-		Math.Clamp(value.x, min.x, max.x),
-		Math.Clamp(value.y, min.y, max.y)
+	public Vector2 Lerp(Vector2 other, float t) => new (
+		x + (other.x - x) * t,
+		y + (other.y - y) * t
+	);
+	
+	public Vector2 Clamp(Vector2 min, Vector2 max) => new (
+		Math.Clamp(x, min.x, max.x),
+		Math.Clamp(y, min.y, max.y)
 	);
 	
 	public Vector2Int ToVector2Int(RoundingMode operation = RoundingMode.Round) => operation switch

@@ -1,6 +1,6 @@
 namespace XYEngine;
 
-public struct Vector3(float x, float y, float z) : IEquatable<Vector3>
+public struct Vector3(float x, float y, float z) : IEquatable<Vector3>, ILerpable<Vector3>
 {
     public float x { get; set; } = x;
     public float y { get; set; } = y;
@@ -32,6 +32,12 @@ public struct Vector3(float x, float y, float z) : IEquatable<Vector3>
     public static bool operator <(Vector3 a, Vector3 b) => a.length < b.length;
     public static bool operator >=(Vector3 a, Vector3 b) => a.length >= b.length;
     public static bool operator <=(Vector3 a, Vector3 b) => a.length <= b.length;
+    
+    public Vector3 Lerp(Vector3 other, float t) => new (
+        x + (other.x - x) * t,
+        y + (other.y - y) * t,
+        z + (other.z - z) * t
+    );
     
     public override bool Equals(object obj) => obj is Vector3 v && this == v;
     

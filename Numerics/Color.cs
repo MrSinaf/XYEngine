@@ -2,7 +2,7 @@
 
 namespace XYEngine;
 
-public struct Color(byte r, byte g, byte b, byte a = byte.MaxValue) : IEquatable<Color>
+public struct Color(byte r, byte g, byte b, byte a = byte.MaxValue) : IEquatable<Color>, ILerpable<Color>
 {
 	public const float FACTOR = 1 / 255F;
 	public static readonly Color white = new (255, 255, 255);
@@ -18,6 +18,13 @@ public struct Color(byte r, byte g, byte b, byte a = byte.MaxValue) : IEquatable
 	public byte a = a;
 	
 	public Color(uint hex) : this((byte)(hex >> 16 & 255), (byte)(hex >> 8 & 255), (byte)(hex & 255), hex > 0xFFFFFF ? (byte)(hex >> 24 & 255) : byte.MaxValue) { }
+	
+	public Color Lerp(Color other, float t) => new (
+		(byte)(r + (other.r - r) * t),
+		(byte)(g + (other.g - g) * t),
+		(byte)(b + (other.b - b) * t),
+		(byte)(a + (other.a - a) * t)
+	);
 	
 	public static Color[] ConvertBytesToColors(Span<byte> bytes)
 	{

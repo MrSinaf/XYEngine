@@ -1,6 +1,6 @@
 ﻿namespace XYEngine;
 
-public struct Vector2Int(int x, int y) : IEquatable<Vector2Int>
+public struct Vector2Int(int x, int y) : IEquatable<Vector2Int>, ILerpable<Vector2Int>
 {
 	/// <summary>
 	///     Vector2Int(0, 0)
@@ -36,9 +36,14 @@ public struct Vector2Int(int x, int y) : IEquatable<Vector2Int>
 	
 	public readonly Vector2 ToVector2() => new (x, y);
 	
-	public static Vector2Int Clamp(Vector2Int value, Vector2Int min, Vector2Int max) => new (
-		Math.Clamp(value.x, min.x, max.x),
-		Math.Clamp(value.y, min.y, max.y)
+	public Vector2Int Lerp(Vector2Int other, float t) => new (
+		(int)(x + (other.x - x) * t),
+		(int)(y + (other.y - y) * t)
+	);
+	
+	public Vector2Int Clamp(Vector2Int min, Vector2Int max) => new (
+		Math.Clamp(x, min.x, max.x),
+		Math.Clamp(y, min.y, max.y)
 	);
 	
 	public static Vector2Int operator /(Vector2Int a, int scalar) => scalar == 0 ? a : new Vector2Int(a.x / scalar, a.y / scalar);

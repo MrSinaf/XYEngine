@@ -1,6 +1,6 @@
 namespace XYEngine;
 
-public struct Vector4(float x, float y, float z, float w) : IEquatable<Vector4>
+public struct Vector4(float x, float y, float z, float w) : IEquatable<Vector4>, ILerpable<Vector4>
 {
 	public float x { get; set; } = x;
 	public float y { get; set; } = y;
@@ -32,6 +32,13 @@ public struct Vector4(float x, float y, float z, float w) : IEquatable<Vector4>
 	public static bool operator <(Vector4 a, Vector4 b) => a.length < b.length;
 	public static bool operator >=(Vector4 a, Vector4 b) => a.length >= b.length;
 	public static bool operator <=(Vector4 a, Vector4 b) => a.length <= b.length;
+	
+	public Vector4 Lerp(Vector4 other, float t) => new (
+		x + (other.x - x) * t,
+		y + (other.y - y) * t,
+		z + (other.z - z) * t,
+		w + (other.w - w) * t
+	);
 	
 	public override bool Equals(object obj) => obj is Vector4 v && this == v;
 	

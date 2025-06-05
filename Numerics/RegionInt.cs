@@ -1,6 +1,6 @@
 namespace XYEngine;
 
-public struct RegionInt(Vector2Int position00, Vector2Int position11)
+public struct RegionInt(Vector2Int position00, Vector2Int position11) : ILerpable<RegionInt>
 {
 	public Vector2Int position00 { get; set; } = position00;
 	public Vector2Int position11 { get; set; } = position11;
@@ -30,6 +30,11 @@ public struct RegionInt(Vector2Int position00, Vector2Int position11)
 	
 	public static RegionInt operator *(RegionInt m, int scalar) => new (m.position00 * scalar, m.position11 * scalar);
 	public static RegionInt operator /(RegionInt m, int scalar) => new (m.position00 / scalar, m.position11 / scalar);
+	
+	public RegionInt Lerp(RegionInt other, float t) => new (
+		position00.Lerp(other.position00, t),
+		position11.Lerp(other.position11, t)
+	);
 	
 	public override string ToString() => $"[pos00: {position00} pos11: {position11}]";
 }

@@ -1,6 +1,6 @@
 namespace XYEngine;
 
-public struct Region(Vector2 position00, Vector2 position11)
+public struct Region(Vector2 position00, Vector2 position11) : ILerpable<Region>
 {
 	public Vector2 position00 { get; set; } = position00;
 	public Vector2 position11 { get; set; } = position11;
@@ -27,6 +27,11 @@ public struct Region(Vector2 position00, Vector2 position11)
 		
 		return new Region(newPosition00, newPosition11);
 	}
+	
+	public Region Lerp(Region other, float t) => new (
+		position00.Lerp(other.position00, t),
+		position11.Lerp(other.position11, t)
+	);
 	
 	public override string ToString() => $"[pos00: {position00} pos11: {position11}]";
 }
