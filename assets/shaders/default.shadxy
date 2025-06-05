@@ -6,11 +6,19 @@ uniform mat3 projection;
 uniform mat3 view;
 uniform mat3 model;
 
+uniform vec4 uvRect;
+uniform vec4 tint;
+uniform float alpha;
+
 void mainVertex(in vec2 position, in vec2 uv, in vec4 color, out vec2 fragCoord) {
     gl_Position = vec4(vec3(position, 1) * model * projection, 1);
     fragCoord = uv;
 }
 
 void mainFragment(in vec2 fragCoord, out vec4 fragColor) {
-    fragColor = texture(mainTex, fragCoord);
+    vec4 color = texture(mainTex, uvRect.xy + fragCoord * uvRect.zw);
+    color.rgb *= tint.rgb;
+    color.a *= alpha;
+    
+    fragColor = color;
 }

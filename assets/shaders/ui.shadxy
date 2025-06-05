@@ -57,8 +57,6 @@ void mainVertex(in vec2 position, in vec2 uv, in vec4 color, out vec2 fragCoord)
 void mainFragment(in vec2 fragCoord, out vec4 fragColor) {
     vec4 color;
     if (padding == vec4(0.0)) {
-        vec2 uvMin = uvRect.xy;
-        vec2 uvMax = uvRect.xy + uvRect.zw;
         color = texture(mainTex, uvRect.xy + fragCoord * uvRect.zw);
     } else {
         color = ninePatch();

@@ -176,4 +176,4 @@ public class Shader : IAsset, IImGuiRenderable
 	public static Shader GetDefaultUI() => AssetManager.GetEmbeddedAsset<Shader>("shaders.ui.shadxy");
 }
 
-public record class ShaderConfig(Action<Material> onCreate = null, Action<Material, string, object> onPropertyAdd = null) : IAssetConfig;
+public record class ShaderConfig(Action<Material> onCreate, Action<Material, string, object> onPropertyAdd) : IAssetConfig;

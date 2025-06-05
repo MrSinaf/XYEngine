@@ -33,8 +33,8 @@ internal class SplashScreen : Scene
 		
 		progressBar = new ProgressBar(0, maxValue: loadingTasks.Length)
 		{
-			position = new Vector2Int(0, 10), anchorMin = Vector2.zero, anchorMax = Vector2.right, size = new Vector2Int(0, 5), margin = new RegionInt(10), tint = Color.black,
-			visible = loadingTasks.Length > 0
+			position = new Vector2Int(0, 10), anchorMin = Vector2.zero, anchorMax = Vector2.right, size = new Vector2Int(0, 5), margin = new RegionInt(10),
+			tint = Color.black, visible = loadingTasks.Length > 0
 		};
 		errorLabel = new Label
 		{
@@ -97,10 +97,15 @@ internal class SplashScreen : Scene
 	
 	private static void LoadDefaultAssets()
 	{
-		AssetManager.LoadEmbeddedAsset<Shader>("shaders.default.shadxy", Shader.internalConfig);
-		
 		var font = AssetManager.LoadEmbeddedAsset<Font>("fonts.jetbrains.ttf");
 		font.GenerateBitmap(16, 256);
+		
+		AssetManager.LoadEmbeddedAsset<Shader>("shaders.default.shadxy", new ShaderConfig(material =>
+		{
+			material.SetProperty(MaterialObject.TINT, Color.white);
+			material.SetProperty(MaterialObject.UV_RECT, new Rect(0, 0, 1, 1));
+			material.SetProperty(MaterialObject.ALPHA, 1F);
+		}, delegate { }));
 		AssetManager.LoadEmbeddedAsset<Shader>("shaders.ui.shadxy", new ShaderConfig(material =>
 		{
 			material.SetProperty("uvRect", new Rect(Vector2.zero, Vector2.one));
