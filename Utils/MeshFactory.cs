@@ -16,7 +16,6 @@ public static class MeshFactory
 		}
 		else
 			mesh.vertices = [new Vector2(0, size.y), size, new Vector2(size.x, 0), Vector2.zero];
-
 		
 		var meshUv = uvs ?? new Region(Vector2.zero, Vector2.one);
 		mesh.uvs = [meshUv.position00, new Vector2(meshUv.position11.x, meshUv.position00.y), meshUv.position11, new Vector2(meshUv.position00.x, meshUv.position11.y)];

@@ -16,8 +16,8 @@ Certaines fonctionnalités peuvent ne pas fonctionner correctement ou des change
 
 XYEngine est un moteur de jeu 2D **Code-only**.
 
-Il est conçu pour faciliter le développement de jeux principalement procéduraux. Ce moteur n'a pas d'interface d'éditeur, car tout le processus se fait directement via du code. Le
-moteur vise à simplifier l'intégration de logiques procédurales tout en permettant une grande flexibilité pour les développeurs.
+Il est conçu pour faciliter le développement de jeux principalement procéduraux. Ce moteur n'a pas d'interface d'éditeur, car tout le processus se fait
+directement via du code. Le moteur vise à simplifier l'intégration de logiques procédurales tout en permettant une grande flexibilité pour les développeurs.
 
 ## 💻〉Fonctionnalités
 
@@ -74,7 +74,8 @@ public class MyFirstScene : Scene
 XYEngine.XY.LaunchGame<MyFirstScene>("Nom de mon projet");
 ```
 
-6. **Exécutez le projet**, si tout est correctement configuré, le moteur devrait se lancer en affichant un SplashScreen, puis un écran noir représentant votre scène.
+6. **Exécutez le projet**, si tout est correctement configuré, le moteur devrait se lancer en affichant un SplashScreen, puis un écran noir représentant votre
+   scène.
 
 > Un template prêt à l'emploi pour XYEngine est disponible [ici](https://github.com/MrSinaf/XYEngine.Template).
 

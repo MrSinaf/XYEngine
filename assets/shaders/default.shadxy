@@ -19,6 +19,6 @@ void mainFragment(in vec2 fragCoord, out vec4 fragColor) {
     vec4 color = texture(mainTex, uvRect.xy + fragCoord * uvRect.zw);
     color.rgb *= tint.rgb;
     color.a *= alpha;
-    
+
     fragColor = color;
 }

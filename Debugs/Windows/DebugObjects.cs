@@ -53,7 +53,7 @@ public class DebugObjects : DebugWindow
 		
 		ImGui.NextColumn();
 		if (cObject != null && ImGui.BeginChild("Inspector"))
-		{ 
+		{
 			ShowObjectInspector();
 			ImGui.EndChild();
 		}

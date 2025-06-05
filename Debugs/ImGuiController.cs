@@ -7,6 +7,7 @@ using XYEngine.Inputs;
 using XYEngine.Rendering;
 using XYEngine.Resources;
 using Key = Silk.NET.Input.Key;
+using MouseButton = Silk.NET.Input.MouseButton;
 using Shader = XYEngine.Resources.Shader;
 
 namespace XYEngine.Debugs;
@@ -243,8 +244,8 @@ public class ImGuiController
 		gl.VertexAttribPointer((uint)attribLocationVtxColor, 4, GLEnum.UnsignedByte, true, (uint)sizeof(ImDrawVert), (void*)16);
 	}
 	
-	private static void OnKeyDown(IKeyboard keyboard, Key keycode, int scancode) => OnKeyEvent(keycode, scancode, down: true);
-	private static void OnKeyUp(IKeyboard keyboard, Key keycode, int scancode) => OnKeyEvent(keycode, scancode, down: false);
+	private static void OnKeyDown(IKeyboard keyboard, Key keycode, int scancode) => OnKeyEvent(keycode, scancode, true);
+	private static void OnKeyUp(IKeyboard keyboard, Key keycode, int scancode) => OnKeyEvent(keycode, scancode, false);
 	private static void OnKeyChar(char c) => ImGui.GetIO().AddInputCharacter(c);
 	
 	private static void OnKeyEvent(Key keyCode, int scancode, bool down)
@@ -261,11 +262,11 @@ public class ImGuiController
 		
 		var mouseState = Input.context.Mice[0];
 		
-		io.MouseDown[0] = mouseState.IsButtonPressed(Silk.NET.Input.MouseButton.Left);
-		io.MouseDown[1] = mouseState.IsButtonPressed(Silk.NET.Input.MouseButton.Right);
-		io.MouseDown[2] = mouseState.IsButtonPressed(Silk.NET.Input.MouseButton.Middle);
+		io.MouseDown[0] = mouseState.IsButtonPressed(MouseButton.Left);
+		io.MouseDown[1] = mouseState.IsButtonPressed(MouseButton.Right);
+		io.MouseDown[2] = mouseState.IsButtonPressed(MouseButton.Middle);
 		
-		var point = new Point((int) mouseState.Position.X, (int) mouseState.Position.Y);
+		var point = new Point((int)mouseState.Position.X, (int)mouseState.Position.Y);
 		io.MousePos = new Vector2(point.X, point.Y);
 		
 		var wheel = mouseState.ScrollWheels[0];
@@ -468,6 +469,6 @@ public class ImGuiController
 		Key.World1         => ImGuiKey.None,
 		Key.World2         => ImGuiKey.None,
 		Key.F25            => ImGuiKey.None,
-		_                  => throw new NotSupportedException(),
+		_                  => throw new NotSupportedException()
 	};
 }

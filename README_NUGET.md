@@ -1,7 +1,7 @@
 ﻿XYEngine est un moteur de jeu 2D **Code-only**.
 
-Il est conçu pour faciliter le développement de jeux principalement procéduraux. Ce moteur n'a pas d'interface d'éditeur, car tout le processus se fait directement via du code. Le
-moteur vise à simplifier l'intégration de logiques procédurales tout en permettant une grande flexibilité pour les développeurs.
+Il est conçu pour faciliter le développement de jeux principalement procéduraux. Ce moteur n'a pas d'interface d'éditeur, car tout le processus se fait
+directement via du code. Le moteur vise à simplifier l'intégration de logiques procédurales tout en permettant une grande flexibilité pour les développeurs.
 
 ## 💻〉Fonctionnalités
 

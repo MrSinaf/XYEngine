@@ -25,7 +25,7 @@ internal class DebugPerformance : DebugWindow
 			var currentFps = (int)(1 / Time.delta);
 			var currentProcess = Process.GetCurrentProcess();
 			var totalMemoryUsed = currentProcess.WorkingSet64 / 1048576F;
-
+			
 			var frameTimeMs = Time.delta * 1000;
 			
 			fpsHistory[historyIndex] = currentFps;

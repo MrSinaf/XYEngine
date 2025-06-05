@@ -66,7 +66,7 @@ public class XYObject
 	
 	public XYObject()
 	{
-		name = GetType().Name;;
+		name = GetType().Name;
 		Scene.AddObject(this);
 	}
 	

@@ -28,7 +28,7 @@
     <ItemGroup>
         <None Include="assets\textures\xy.png" PackagePath="/icon.png" Pack="true"/>
         <None Include="README_NUGET.md" PackagePath="/" Pack="true"/>
-        
+
         <EmbeddedResource Include="assets\**\*" Exclude="assets\deps\**\*"/>
         <PackageReference Include="FreeTypeSharp" Version="3.0.0"/>
         <PackageReference Include="JetBrains.Annotations" Version="2024.3.0"/>
@@ -41,13 +41,13 @@
         <PackageReference Include="Silk.NET.Windowing.Glfw" Version="2.22.0"/>
         <PackageReference Include="StbImageSharp" Version="2.30.15"/>
         <PackageReference Include="System.Text.Json" Version="9.0.5"/>
-        
+
         <None Include="assets\deps\win-x64\cimgui.dll" PackagePath="runtimes/win-x64/native/" Pack="true"/>
         <None Include="assets\deps\linux-x64\cimgui.so" PackagePath="runtimes/linux-x64/native/" Pack="true"/>
         <None Include="assets\deps\osx\cimgui.dylib" PackagePath="runtimes/osx/native/" Pack="true"/>
         <None Update="README_NUGET.md">
-          <PackagePath>/</PackagePath>
-          <Pack>true</Pack>
+            <PackagePath>/</PackagePath>
+            <Pack>true</Pack>
         </None>
     </ItemGroup>
 </Project>

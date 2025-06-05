@@ -141,7 +141,7 @@ public class Shader : IAsset, IImGuiRenderable
 					
 					functions[functionName] = (shaderContent.Substring(startIndex, endIndex - startIndex + 1)
 															.Replace($"{functionName}({parametersText})", $"{functionName}({string.Join(", ", cleanParamsList)})"),
-											   string.Join("\n", formattedParamsList));
+												  string.Join("\n", formattedParamsList));
 				}
 				else
 					functions[functionName] = (shaderContent.Substring(startIndex, endIndex - startIndex + 1), "");
