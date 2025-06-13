@@ -52,7 +52,7 @@ public class AnimationTrack<T> : IAnimationTrack
 		
 		var currentFrame = keyFrames[currentIndex];
 		var nextFrame = keyFrames[currentIndex + 1];
-		applyProperty(currentFrame.lerp ? Lerp(currentFrame.value, nextFrame.value, (targetTime - currentFrame.time) / nextFrame.time - currentFrame.time) : currentFrame.value);
+		applyProperty(currentFrame.lerp ? Lerp(currentFrame.value, nextFrame.value, (targetTime - currentFrame.time) / (nextFrame.time - currentFrame.time)) : currentFrame.value);
 	}
 	
 	void IAnimationTrack.Reset()

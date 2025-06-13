@@ -32,7 +32,13 @@ public class Animation
 	
 	public void Play()
 	{
+		currentTime = 0;
 		isRunning = true;
+	}
+	
+	public void Resume()
+	{
+		isRunning = false;
 	}
 	
 	public void Pause()
@@ -42,8 +48,8 @@ public class Animation
 	
 	public void Stop()
 	{
-		isRunning = false;
 		currentTime = 0;
+		isRunning = false;
 	}
 	
 	public void Update()
