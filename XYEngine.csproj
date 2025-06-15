@@ -9,7 +9,7 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 
-        <Version>$(AssemblyVersion)-experimental</Version>
+        <Version>$(AssemblyVersion)-preview.1</Version>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Title>XYEngine</Title>
         <RepositoryType>git</RepositoryType>
