@@ -1,0 +1,45 @@
+uniform vec4 cornerRadius;
+
+// @fragment-only
+float cornerRadiusMask(vec2 fragCoord)
+{
+    if (cornerRadius == vec4(0.0)) return 1.0;
+
+    vec2 p = fragCoord * modelSize;
+    float mask = 1.0;
+
+    float aa = max(1.0, length(fwidth(p)));
+
+    float radiusTL = cornerRadius.x;
+    if (radiusTL > 0.0 && p.x < radiusTL && p.y < radiusTL) {
+        float d = length(p - vec2(radiusTL, radiusTL)) - radiusTL;
+        float m = 1.0 - smoothstep(0.0, aa, d);
+        mask = min(mask, m);
+    }
+
+    float radiusTR = cornerRadius.y;
+    if (radiusTR > 0.0 && p.x > (modelSize.x - radiusTR) && p.y < radiusTR) {
+        vec2 c = vec2(modelSize.x - radiusTR, radiusTR);
+        float d = length(p - c) - radiusTR;
+        float m = 1.0 - smoothstep(0.0, aa, d);
+        mask = min(mask, m);
+    }
+
+    float radiusBR = cornerRadius.z;
+    if (radiusBR > 0.0 && p.x > (modelSize.x - radiusBR) && p.y > (modelSize.y - radiusBR)) {
+        vec2 c = vec2(modelSize.x - radiusBR, modelSize.y - radiusBR);
+        float d = length(p - c) - radiusBR;
+        float m = 1.0 - smoothstep(0.0, aa, d);
+        mask = min(mask, m);
+    }
+
+    float radiusBL = cornerRadius.w;
+    if (radiusBL > 0.0 && p.x < radiusBL && p.y > (modelSize.y - radiusBL)) {
+        vec2 c = vec2(radiusBL, modelSize.y - radiusBL);
+        float d = length(p - c) - radiusBL;
+        float m = 1.0 - smoothstep(0.0, aa, d);
+        mask = min(mask, m);
+    }
+
+    return mask;
+}

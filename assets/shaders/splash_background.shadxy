@@ -1,0 +1,13 @@
+﻿#include "shaders/common.libxy"
+
+uniform vec2 repeat;
+
+void mainVertex(in vec2 position, in vec2 uv, in vec4 color, out vec2 fragCoord) {
+    gl_Position = vec4(vec3(position, 1) * model * projection, 1);
+    fragCoord = uv;
+}
+
+void mainFragment(in vec2 fragCoord, out vec4 fragColor) {
+    float fragTime = time / 10;
+    fragColor = texture(mainTex, vec2(fragCoord.x * repeat.x + fragTime, fragCoord.y * repeat.y - fragTime));
+}

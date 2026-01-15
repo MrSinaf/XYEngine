@@ -1,0 +1,37 @@
+uniform float ninepatchScale;
+uniform vec4 ninepatch;
+
+// @fragment-only
+vec4 ninePatch()
+{
+    vec4 uvRegion = vec4(uvRect.xy, uvRect.xy + uvRect.zw);
+    vec2 texSizeScaled = mainTexSize * uvRect.zw * ninepatchScale;
+    vec4 uvMarginScaled = ninepatch * ninepatchScale;
+
+    vec2 regionMarginMin = uvRegion.xy + (uvMarginScaled.xy / texSizeScaled) * uvRect.zw;
+    vec2 regionMarginMax = uvRegion.zw - (uvMarginScaled.zw / texSizeScaled) * uvRect.zw;
+
+    vec2 modelMarginMin = uvMarginScaled.xy;
+    vec2 modelMarginMax = modelSize - uvMarginScaled.zw;
+
+    vec2 fragPos = fragCoord * modelSize;
+    vec2 finalUV;
+
+    if (fragPos.x < modelMarginMin.x) {
+        finalUV.x = uvRegion.x + (fragPos.x / modelMarginMin.x) * (regionMarginMin.x - uvRegion.x);
+    } else if (fragPos.x > modelMarginMax.x) {
+        finalUV.x = uvRegion.z - ((modelSize.x - fragPos.x) / uvMarginScaled.z) * (uvRegion.z - regionMarginMax.x);
+    } else {
+        finalUV.x = regionMarginMin.x + ((fragPos.x - modelMarginMin.x) / (modelMarginMax.x - modelMarginMin.x)) * (regionMarginMax.x - regionMarginMin.x);
+    }
+
+    if (fragPos.y < modelMarginMin.y) {
+        finalUV.y = uvRegion.y + (fragPos.y / modelMarginMin.y) * (regionMarginMin.y - uvRegion.y);
+    } else if (fragPos.y > modelMarginMax.y) {
+        finalUV.y = uvRegion.w - ((modelSize.y - fragPos.y) / uvMarginScaled.w) * (uvRegion.w - regionMarginMax.y);
+    } else {
+        finalUV.y = regionMarginMin.y + ((fragPos.y - modelMarginMin.y) / (modelMarginMax.y - modelMarginMin.y)) * (regionMarginMax.y - regionMarginMin.y);
+    }
+
+    return texture(mainTex, finalUV);
+}

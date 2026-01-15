@@ -1,0 +1,28 @@
+uniform vec2 resolution;
+uniform float time;
+
+uniform mat3 projection;
+uniform mat3 view;
+uniform mat3 model;
+
+uniform sampler2D mainTex;
+uniform vec4 uvRect;
+uniform vec4 tint;
+uniform float alpha;
+
+// @vertex-only
+vec4 XY_makePosition(vec2 position) {
+    return vec4(vec3(position, 1) * model * view * projection, 1);
+}
+
+// @fragment-only
+vec4 XY_sampleUVRect(sampler2D tex, vec4 uvRect, vec2 uv) {
+    return texture(tex, uvRect.xy + uv * uvRect.zw);
+}
+
+// @fragment-only
+vec4 XY_applyTintAlpha(vec4 current) {
+    current.rgb *= tint.rgb;
+    current.a *= (alpha * tint.a);
+    return current;
+}

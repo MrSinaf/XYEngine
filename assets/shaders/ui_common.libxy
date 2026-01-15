@@ -1,0 +1,4 @@
+#include "shaders/common.libxy"
+
+uniform vec2 mainTexSize;
+uniform vec2 modelSize;

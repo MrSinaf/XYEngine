@@ -1,0 +1,46 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <OutputType>Library</OutputType>
+        <AssemblyVersion>0.3.0</AssemblyVersion>
+        <TargetFramework>net10.0</TargetFramework>
+        <LangVersion>14</LangVersion>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>disable</Nullable>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+
+        <Version>$(AssemblyVersion)-preview.3</Version>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Title>XYEngine</Title>
+        <RepositoryType>git</RepositoryType>
+        <PackageId>XYEngine</PackageId>
+        <Authors>MrSinaf</Authors>
+        <Description>2D Game Engine based on code-only development.</Description>
+        <Copyright>sinafproduction</Copyright>
+        <PackageIcon>icon.png</PackageIcon>
+        <RepositoryUrl>https://github.com/MrSinaf/XYEngine</RepositoryUrl>
+        <PackageTags>game engine, code-only, mrsinaf, sinafproduction</PackageTags>
+        <PackageProjectUrl>https://sinafproduction.xyz/projects/xyengine</PackageProjectUrl>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <None Include="assets\textures\xy.png" PackagePath="/icon.png" Pack="true"/>
+
+        <EmbeddedResource Include="assets\**\*" Exclude="assets\deps\**\*"/>
+        <PackageReference Include="FreeTypeSharp" Version="3.0.1"/>
+        <PackageReference Include="JetBrains.Annotations" Version="2025.2.4" />
+        <PackageReference Include="NAudio" Version="2.2.1"/>
+        <PackageReference Include="NVorbis" Version="0.10.5"/>
+        <PackageReference Include="Silk.NET.Input.Glfw" Version="2.22.0"/>
+        <PackageReference Include="Silk.NET.OpenAL" Version="2.22.0"/>
+        <PackageReference Include="Silk.NET.OpenAL.Soft.Native" Version="1.23.1"/>
+        <PackageReference Include="Silk.NET.OpenGL" Version="2.22.0"/>
+        <PackageReference Include="Silk.NET.Windowing.Glfw" Version="2.22.0"/>
+        <PackageReference Include="StbImageSharp" Version="2.30.15"/>
+
+        <None Include="assets\deps\win-x64\cimgui.dll" PackagePath="runtimes/win-x64/native/" Pack="true"/>
+        <None Include="assets\deps\linux-x64\cimgui.so" PackagePath="runtimes/linux-x64/native/" Pack="true"/>
+        <None Include="assets\deps\osx\cimgui.dylib" PackagePath="runtimes/osx/native/" Pack="true"/>
+    </ItemGroup>
+</Project>

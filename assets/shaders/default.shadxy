@@ -1,0 +1,11 @@
+﻿#include "shaders/common.libxy"
+
+void mainVertex(in vec2 position, in vec2 uv, in vec4 color, out vec2 fragCoord) {
+    gl_Position = XY_makePosition(position);
+    fragCoord = uv;
+}
+
+void mainFragment(in vec2 fragCoord, out vec4 fragColor) {
+    vec4 color = XY_sampleUVRect(mainTex, uvRect, fragCoord);
+    fragColor = XY_applyTintAlpha(color);
+}
